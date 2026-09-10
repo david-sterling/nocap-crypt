@@ -1,0 +1,10 @@
+pub mod align;
+pub mod bench;
+pub mod completions;
+pub mod entropy;
+pub mod image;
+pub mod info;
+pub mod inspect;
+pub mod keycheck;
+pub mod keygen;
+pub mod validate;

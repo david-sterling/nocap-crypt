@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nocap-crypt-cli",
+    "crates/nocap-crypt-core",
+    "crates/nocap-crypt-keymgmt",
+    "crates/nocap-crypt-entropy",
+    "crates/nocap-crypt-blockio",
+    "crates/nocap-crypt-luks",
+    "crates/nocap-crypt-worker",
+    "crates/nocap-crypt-bench",
+    "crates/nocap-crypt-ui",
+    "crates/nocap-crypt-sysinfo",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+# Custom permissive-with-a-named-carve-out license, not standard MIT
+# (see /LICENSE) — `license-file`, not the `license` SPDX-identifier
+# field, is the correct Cargo metadata field for non-SPDX terms.
+license-file = "LICENSE"
+
+[workspace.dependencies]
+aes = "0.8"
+xts-mode = "0.5"
+cbc = "0.1"
+sha2 = "0.10"
+cipher = "0.4"
+rayon = "1.10"
+indicatif = "0.17"
+crossterm = "0.28"
+console = "0.15"
+clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+rand = "0.8"
+hex = "0.4"
+base64 = "0.22"
+
+nocap-crypt-core = { path = "crates/nocap-crypt-core" }
+nocap-crypt-keymgmt = { path = "crates/nocap-crypt-keymgmt" }
+nocap-crypt-entropy = { path = "crates/nocap-crypt-entropy" }
+nocap-crypt-blockio = { path = "crates/nocap-crypt-blockio" }
+nocap-crypt-luks = { path = "crates/nocap-crypt-luks" }
+nocap-crypt-worker = { path = "crates/nocap-crypt-worker" }
+nocap-crypt-bench = { path = "crates/nocap-crypt-bench" }
+nocap-crypt-ui = { path = "crates/nocap-crypt-ui" }
+nocap-crypt-sysinfo = { path = "crates/nocap-crypt-sysinfo" }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3

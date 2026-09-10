@@ -1,0 +1,8 @@
+target/*
+
+# Scratch output from manual encrypt/decrypt testing (fixtures, ciphertext, raw keys) -
+# not part of the tracked test corpus, which lives under crates/*/tests/.
+*.squashfs
+*.sec
+*.sec.dec
+*.key

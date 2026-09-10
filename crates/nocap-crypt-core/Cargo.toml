@@ -1,0 +1,18 @@
+[package]
+name = "nocap-crypt-core"
+version.workspace = true
+edition.workspace = true
+license-file.workspace = true
+
+[dependencies]
+aes = { workspace = true }
+xts-mode = { workspace = true }
+cbc = { workspace = true }
+sha2 = { workspace = true }
+cipher = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+hex = "0.4"
+serde = { workspace = true }
+serde_json = { workspace = true }

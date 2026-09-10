@@ -1,0 +1,10 @@
+[package]
+name = "nocap-crypt-worker"
+version.workspace = true
+edition.workspace = true
+license-file.workspace = true
+
+[dependencies]
+nocap-crypt-core = { workspace = true }
+nocap-crypt-blockio = { workspace = true }
+rayon = { workspace = true }

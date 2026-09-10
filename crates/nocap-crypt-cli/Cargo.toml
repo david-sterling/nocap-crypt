@@ -1,0 +1,29 @@
+[package]
+name = "nocap-crypt-cli"
+version.workspace = true
+edition.workspace = true
+license-file.workspace = true
+
+[[bin]]
+name = "nocap-crypt"
+path = "src/main.rs"
+
+[dependencies]
+nocap-crypt-core = { workspace = true }
+nocap-crypt-keymgmt = { workspace = true }
+nocap-crypt-entropy = { workspace = true }
+nocap-crypt-blockio = { workspace = true }
+nocap-crypt-luks = { workspace = true }
+nocap-crypt-worker = { workspace = true }
+nocap-crypt-bench = { workspace = true }
+nocap-crypt-ui = { workspace = true }
+nocap-crypt-sysinfo = { workspace = true }
+clap = { workspace = true }
+clap_complete = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+indicatif = { workspace = true }
+rand = { workspace = true }
+console = { workspace = true }
+rayon = { workspace = true }
