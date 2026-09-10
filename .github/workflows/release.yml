@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+  BIN_NAME: nocap-crypt
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            use_cross: false
+            asset_name: nocap-crypt-windows-x86_64
+            ext: zip
+
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: false
+            asset_name: nocap-crypt-linux-x86_64
+            ext: tar.gz
+
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: true
+            asset_name: nocap-crypt-linux-arm64
+            ext: tar.gz
+
+          - target: armv7-unknown-linux-gnueabihf
+            os: ubuntu-latest
+            use_cross: true
+            asset_name: nocap-crypt-linux-armv7
+            ext: tar.gz
+
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            use_cross: false
+            asset_name: nocap-crypt-macos-arm64
+            ext: tar.gz
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.use_cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      - name: Build (cargo)
+        if: ${{ !matrix.use_cross }}
+        run: cargo build --release --locked -p nocap-crypt-cli --target ${{ matrix.target }}
+        shell: bash
+
+      - name: Build (cross)
+        if: matrix.use_cross
+        run: cross build --release --locked -p nocap-crypt-cli --target ${{ matrix.target }}
+        shell: bash
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dir = "${{ matrix.asset_name }}"
+          New-Item -ItemType Directory -Path $dir | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/$env:BIN_NAME.exe" "$dir/"
+          Copy-Item LICENSE "$dir/" -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$dir/*" -DestinationPath "${{ matrix.asset_name }}.zip"
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          dir="${{ matrix.asset_name }}"
+          mkdir -p "$dir"
+          cp "target/${{ matrix.target }}/release/$BIN_NAME" "$dir/"
+          [ -f LICENSE ] && cp LICENSE "$dir/" || true
+          tar czf "${{ matrix.asset_name }}.tar.gz" "$dir"
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}.${{ matrix.ext }}
+          fail_on_unmatched_files: true
