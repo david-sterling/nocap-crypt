@@ -182,20 +182,22 @@ fn cbc_essiv_crypt_range(
 
 fn cbc_encrypt_blocks<C: BlockEncrypt>(cipher: &C, iv: &[u8; 16], buf: &mut [u8]) {
     let mut prev = *iv;
-    for block in buf.chunks_exact_mut(16) {
+    let (blocks, _) = buf.as_chunks_mut::<16>();
+    for block in blocks {
         for (b, p) in block.iter_mut().zip(prev.iter()) {
             *b ^= p;
         }
-        cipher.encrypt_block(block.into());
-        prev.copy_from_slice(block);
+        cipher.encrypt_block((&mut block[..]).into());
+        prev.copy_from_slice(&block[..]);
     }
 }
 
 fn cbc_decrypt_blocks<C: BlockDecrypt>(cipher: &C, iv: &[u8; 16], buf: &mut [u8]) {
     let mut prev = *iv;
-    for block in buf.chunks_exact_mut(16) {
-        let ciphertext: [u8; 16] = block.try_into().unwrap();
-        cipher.decrypt_block(block.into());
+    let (blocks, _) = buf.as_chunks_mut::<16>();
+    for block in blocks {
+        let ciphertext: [u8; 16] = *block;
+        cipher.decrypt_block((&mut block[..]).into());
         for (b, p) in block.iter_mut().zip(prev.iter()) {
             *b ^= p;
         }
