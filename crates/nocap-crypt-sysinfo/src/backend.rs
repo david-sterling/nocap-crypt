@@ -31,7 +31,8 @@ pub struct CryptoBackendInfo {
 
 pub fn crypto_backend_info() -> CryptoBackendInfo {
     CryptoBackendInfo {
-        backend: "RustCrypto aes/xts-mode/cbc/sha2 (pure Rust, no OpenSSL/libcrypto/ring linkage)".to_string(),
+        backend: "RustCrypto aes/xts-mode/cbc/sha2 (pure Rust, no OpenSSL/libcrypto/ring linkage)"
+            .to_string(),
         cipher_specs_compiled_in: vec![
             "aes-xts-plain64".to_string(),
             "aes-cbc-essiv:sha256".to_string(),
@@ -56,7 +57,9 @@ mod tests {
     #[test]
     fn crypto_backend_lists_both_cipher_specs() {
         let info = crypto_backend_info();
-        assert!(info.cipher_specs_compiled_in.contains(&"aes-xts-plain64".to_string()));
+        assert!(info
+            .cipher_specs_compiled_in
+            .contains(&"aes-xts-plain64".to_string()));
         assert!(info
             .cipher_specs_compiled_in
             .contains(&"aes-cbc-essiv:sha256".to_string()));

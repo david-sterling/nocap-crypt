@@ -69,7 +69,12 @@ pub fn run(quiet: bool) -> ExitCode {
 
     let mut input = String::new();
     let _ = io::stdin().read_line(&mut input);
-    let choice = input.trim().chars().next().unwrap_or('r').to_ascii_lowercase();
+    let choice = input
+        .trim()
+        .chars()
+        .next()
+        .unwrap_or('r')
+        .to_ascii_lowercase();
 
     if choice == 'b' {
         println!("{BLUE_PILL}");

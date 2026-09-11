@@ -231,7 +231,11 @@ mod platform {
 
     pub fn open_write(path: &Path, create: bool) -> io::Result<(File, bool)> {
         Ok((
-            OpenOptions::new().read(true).write(true).create(create).open(path)?,
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(create)
+                .open(path)?,
             false,
         ))
     }
@@ -258,7 +262,11 @@ mod platform {
 
     pub fn open_write(path: &Path, create: bool) -> io::Result<(File, bool)> {
         Ok((
-            OpenOptions::new().read(true).write(true).create(create).open(path)?,
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(create)
+                .open(path)?,
             false,
         ))
     }
@@ -278,7 +286,11 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_path(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("nocap-crypt-blockio-test-{}-{}", std::process::id(), name))
+        std::env::temp_dir().join(format!(
+            "nocap-crypt-blockio-test-{}-{}",
+            std::process::id(),
+            name
+        ))
     }
 
     #[test]
@@ -342,7 +354,11 @@ mod tests {
         sf.write_at_exact(0, &head).unwrap();
         sf.write_at_exact(4096, &tail).unwrap();
 
-        assert_eq!(sf.len().unwrap(), 4608, "tail write must not extend the file past its set length");
+        assert_eq!(
+            sf.len().unwrap(),
+            4608,
+            "tail write must not extend the file past its set length"
+        );
 
         let mut readback = vec![0u8; 4608];
         sf.read_at_exact(0, &mut readback).unwrap();

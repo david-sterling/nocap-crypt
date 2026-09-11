@@ -82,7 +82,10 @@ mod tests {
         let spec = CipherSpec::parse("aes-xts-plain64").unwrap();
         let a = generate_key(&spec);
         let b = generate_key(&spec);
-        assert_ne!(a, b, "two independent CSPRNG draws collided — broken RNG wiring");
+        assert_ne!(
+            a, b,
+            "two independent CSPRNG draws collided — broken RNG wiring"
+        );
     }
 
     #[test]
@@ -94,7 +97,8 @@ mod tests {
 
     #[test]
     fn refuses_to_overwrite_without_force() {
-        let dir = std::env::temp_dir().join(format!("nocap-crypt-keygen-test-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("nocap-crypt-keygen-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("key.bin");
         write_key_file(&path, &[1, 2, 3, 4], false).unwrap();

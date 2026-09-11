@@ -38,7 +38,9 @@ pub fn run(args: &EntropyArgs, reporter: &dyn Reporter) -> ExitCode {
     let report = match report {
         Ok(r) => r,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::Io;
         }
     };
@@ -49,7 +51,9 @@ pub fn run(args: &EntropyArgs, reporter: &dyn Reporter) -> ExitCode {
     });
     if reporter.narrates() {
         reporter.report(Event::Narration {
-            text: nocap_crypt_ui::explain_entropy_result_generic(report.overall_shannon_bits_per_byte),
+            text: nocap_crypt_ui::explain_entropy_result_generic(
+                report.overall_shannon_bits_per_byte,
+            ),
         });
     }
     reporter.report(Event::Message {

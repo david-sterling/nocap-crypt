@@ -11,7 +11,8 @@ fn main() {
     let git_sha = git_describe().unwrap_or_else(|| "unknown".to_string());
     println!("cargo:rustc-env=NOCAP_CRYPT_GIT_SHA={git_sha}");
 
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR set by cargo");
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR set by cargo");
     let git_dir = Path::new(&manifest_dir).join("../../.git");
     println!("cargo:rerun-if-changed={}", git_dir.join("HEAD").display());
     println!("cargo:rerun-if-changed={}", git_dir.join("index").display());

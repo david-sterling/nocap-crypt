@@ -47,7 +47,14 @@ const VECTOR10_SECTOR: u64 = 0xff;
 const VECTOR10_PTX: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff";
 const VECTOR10_CTX: &str = "1c3b3a102f770386e4836c99e370cf9bea00803f5e482357a4ae12d414a3e63b5d31e276f8fe4a8d66b317f9ac683f44680a86ac35adfc3345befecb4bb188fd5776926c49a3095eb108fd1098baec70aaa66999a72a82f27d848b21d4a741b0c5cd4d5fff9dac89aeba122961d03a757123e9870f8acf1000020887891429ca2a3e7a7d7df7b10355165c8b9a6d0a7de8b062c4500dc4cd120c0f7418dae3d0b5781c34803fa75421c790dfe1de1834f280d7667b327f6c8cd7557e12ac3a0f93ec05c52e0493ef31a12d3d9260f79a289d6a379bc70c50841473d1a8cc81ec583e9645e07b8d9670655ba5bbcfecc6dc3966380ad8fecb17b6ba02469a020a84e18e8f84252070c13e9f1f289be54fbc481457778f616015e1327a02b140f1505eb309326d68378f8374595c849d84f4c333ec4423885143cb47bd71c5edae9be69a2ffeceb1bec9de244fbe15992b11b77c040f12bd8f6a975a44a0f90c29a9abc3d4d893927284c58754cce294529f8614dcd2aba991925fedc4ae74ffac6e333b93eb4aff0479da9a410e4450e0dd7ae4c6e2910900575da401fc07059f645e8b7e9bfdef33943054ff84011493c27b3429eaedb4ed5376441a77ed43851ad77f16f541dfd269d50d6a5f14fb0aab1cbb4c1550be97f7ab4066193c4caa773dad38014bd2092fa755c824bb5e54c4f36ffda9fcea70b9c6e693e148c151";
 
-fn run_vector(key1_hex: &str, key2_hex: &str, aes_bits: u16, sector: u64, ptx_hex: &str, ctx_hex: &str) {
+fn run_vector(
+    key1_hex: &str,
+    key2_hex: &str,
+    aes_bits: u16,
+    sector: u64,
+    ptx_hex: &str,
+    ctx_hex: &str,
+) {
     let key1 = hex::decode(key1_hex).unwrap();
     let key2 = hex::decode(key2_hex).unwrap();
     let mut key = key1.clone();
@@ -55,32 +62,66 @@ fn run_vector(key1_hex: &str, key2_hex: &str, aes_bits: u16, sector: u64, ptx_he
 
     let ptx = hex::decode(ptx_hex).unwrap();
     let ctx = hex::decode(ctx_hex).unwrap();
-    assert_eq!(ptx.len(), 512, "vector data unit must be exactly one 512-byte sector");
+    assert_eq!(
+        ptx.len(),
+        512,
+        "vector data unit must be exactly one 512-byte sector"
+    );
     assert_eq!(ctx.len(), 512);
 
-    let spec = CipherSpec::parse("aes-xts-plain64").unwrap().with_aes_bits(aes_bits).unwrap();
+    let spec = CipherSpec::parse("aes-xts-plain64")
+        .unwrap()
+        .with_aes_bits(aes_bits)
+        .unwrap();
     let engine = SectorEngine::new(spec, &key).unwrap();
 
     let mut encrypted = ptx.clone();
     engine.encrypt_range(sector, &mut encrypted);
-    assert_eq!(encrypted, ctx, "encryption did not match the IEEE 1619 known-answer ciphertext");
+    assert_eq!(
+        encrypted, ctx,
+        "encryption did not match the IEEE 1619 known-answer ciphertext"
+    );
 
     let mut decrypted = ctx.clone();
     engine.decrypt_range(sector, &mut decrypted);
-    assert_eq!(decrypted, ptx, "decryption did not recover the IEEE 1619 known-answer plaintext");
+    assert_eq!(
+        decrypted, ptx,
+        "decryption did not recover the IEEE 1619 known-answer plaintext"
+    );
 }
 
 #[test]
 fn kat_ieee1619_vector4_aes128_sector0() {
-    run_vector(VECTOR4_KEY1, VECTOR4_KEY2, 128, VECTOR4_SECTOR, VECTOR4_PTX, VECTOR4_CTX);
+    run_vector(
+        VECTOR4_KEY1,
+        VECTOR4_KEY2,
+        128,
+        VECTOR4_SECTOR,
+        VECTOR4_PTX,
+        VECTOR4_CTX,
+    );
 }
 
 #[test]
 fn kat_ieee1619_vector9_aes128_sector_ff() {
-    run_vector(VECTOR9_KEY1, VECTOR9_KEY2, 128, VECTOR9_SECTOR, VECTOR9_PTX, VECTOR9_CTX);
+    run_vector(
+        VECTOR9_KEY1,
+        VECTOR9_KEY2,
+        128,
+        VECTOR9_SECTOR,
+        VECTOR9_PTX,
+        VECTOR9_CTX,
+    );
 }
 
 #[test]
 fn kat_ieee1619_vector10_aes256_sector_ff() {
-    run_vector(VECTOR10_KEY1, VECTOR10_KEY2, 256, VECTOR10_SECTOR, VECTOR10_PTX, VECTOR10_CTX);
+    run_vector(
+        VECTOR10_KEY1,
+        VECTOR10_KEY2,
+        256,
+        VECTOR10_SECTOR,
+        VECTOR10_PTX,
+        VECTOR10_CTX,
+    );
 }

@@ -249,7 +249,14 @@ mod tests {
         assert_eq!(Silent.didactic_primer(), None);
         assert_eq!(Verbose { json: false }.didactic_primer(), None);
         assert_eq!(Corporate { json: false }.didactic_primer(), None);
-        assert_eq!(Ci { json: false, no_color: false }.didactic_primer(), None);
+        assert_eq!(
+            Ci {
+                json: false,
+                no_color: false
+            }
+            .didactic_primer(),
+            None
+        );
         assert_eq!(
             Didactic { json: false }.didactic_primer(),
             Some(crate::didactic::narrate::DIDACTIC_PRIMER)
@@ -270,9 +277,18 @@ mod tests {
     #[test]
     fn progress_flavor_is_mode_specific() {
         assert_eq!(Silent.progress_flavor(), ProgressFlavor::Meme);
-        assert_eq!(Verbose { json: false }.progress_flavor(), ProgressFlavor::Meme);
-        assert_eq!(Corporate { json: false }.progress_flavor(), ProgressFlavor::Sterile);
-        assert_eq!(Didactic { json: false }.progress_flavor(), ProgressFlavor::Didactic);
+        assert_eq!(
+            Verbose { json: false }.progress_flavor(),
+            ProgressFlavor::Meme
+        );
+        assert_eq!(
+            Corporate { json: false }.progress_flavor(),
+            ProgressFlavor::Sterile
+        );
+        assert_eq!(
+            Didactic { json: false }.progress_flavor(),
+            ProgressFlavor::Didactic
+        );
     }
 
     #[test]
@@ -289,44 +305,83 @@ mod tests {
         assert!(!Verbose { json: false }.ci_mode());
         assert!(!Didactic { json: false }.ci_mode());
         assert!(!Corporate { json: false }.ci_mode());
-        assert!(Ci { json: false, no_color: false }.ci_mode());
+        assert!(Ci {
+            json: false,
+            no_color: false
+        }
+        .ci_mode());
     }
 
     #[test]
     fn banner_prints_verbatim_with_no_prefix_in_any_reporter() {
         let banner = "====\nSOME BANNER\n====";
         assert_eq!(
-            crate::corporate::format_corporate(&Event::Banner { text: banner.to_string() }),
+            crate::corporate::format_corporate(&Event::Banner {
+                text: banner.to_string()
+            }),
             Some(banner.to_string())
         );
-        assert_eq!(format_human(&Event::Banner { text: banner.to_string() }), banner.to_string());
+        assert_eq!(
+            format_human(&Event::Banner {
+                text: banner.to_string()
+            }),
+            banner.to_string()
+        );
     }
 
     #[test]
     fn human_format_covers_all_variants_without_panic() {
         let events = vec![
-            Event::CipherSelected { cipher: "aes-xts-plain64".into(), key_bits: 256 },
-            Event::HardwareAccelPath { description: "AES-NI".into() },
+            Event::CipherSelected {
+                cipher: "aes-xts-plain64".into(),
+                key_bits: 256,
+            },
+            Event::HardwareAccelPath {
+                description: "AES-NI".into(),
+            },
             Event::ConcurrencyInfo {
                 effective_cores: 4,
                 disk_type: "Ssd".into(),
                 chunk_sectors: 8,
                 concurrency: "GlobalPool".into(),
             },
-            Event::AlignmentStatus { path: "/tmp/x".into(), aligned: true, required_alignment: 4096 },
-            Event::PhaseTiming { phase: "encrypt".into(), duration_ms: 12, throughput_mb_s: Some(150.2) },
-            Event::EntropyScore { bits_per_byte: 7.998, chi_square_uniform_95: true },
-            Event::Progress { percent: 50.0, bytes_per_sec: Some(120.0), elapsed_secs: 6.2 },
+            Event::AlignmentStatus {
+                path: "/tmp/x".into(),
+                aligned: true,
+                required_alignment: 4096,
+            },
+            Event::PhaseTiming {
+                phase: "encrypt".into(),
+                duration_ms: 12,
+                throughput_mb_s: Some(150.2),
+            },
+            Event::EntropyScore {
+                bits_per_byte: 7.998,
+                chi_square_uniform_95: true,
+            },
+            Event::Progress {
+                percent: 50.0,
+                bytes_per_sec: Some(120.0),
+                elapsed_secs: 6.2,
+            },
             Event::Outcome {
                 success: true,
                 error_code: "NC-000".into(),
                 elapsed_ms: 1400,
                 label: "completed successfully".into(),
             },
-            Event::Narration { text: "sector 4096 -> IV = 0x1000000000000000 LE".into() },
-            Event::Banner { text: "some banner".into() },
-            Event::Message { text: "done".into() },
-            Event::Error { text: "boom".into() },
+            Event::Narration {
+                text: "sector 4096 -> IV = 0x1000000000000000 LE".into(),
+            },
+            Event::Banner {
+                text: "some banner".into(),
+            },
+            Event::Message {
+                text: "done".into(),
+            },
+            Event::Error {
+                text: "boom".into(),
+            },
         ];
         for event in events {
             assert!(!format_human(&event).is_empty());

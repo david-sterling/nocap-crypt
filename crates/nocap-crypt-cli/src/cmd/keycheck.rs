@@ -28,7 +28,9 @@ pub fn run(args: &KeycheckArgs, reporter: &dyn Reporter) -> ExitCode {
     let spec = match resolve_cipher_spec(args.cipher, args.key_size) {
         Ok(s) => s,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::UnsupportedCipher;
         }
     };
@@ -36,7 +38,9 @@ pub fn run(args: &KeycheckArgs, reporter: &dyn Reporter) -> ExitCode {
     let key = match load_key_file(&args.key_file, args.key_format) {
         Ok(k) => k,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::Io;
         }
     };
@@ -44,7 +48,9 @@ pub fn run(args: &KeycheckArgs, reporter: &dyn Reporter) -> ExitCode {
     let report = match nocap_crypt_keymgmt::validate_key(&spec, &key) {
         Ok(r) => r,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::KeyValidation;
         }
     };
@@ -82,7 +88,10 @@ pub fn run(args: &KeycheckArgs, reporter: &dyn Reporter) -> ExitCode {
             text: nocap_crypt_ui::explain_keycheck_length().to_string(),
         });
         reporter.report(Event::Narration {
-            text: nocap_crypt_ui::explain_entropy_result_key(report.shannon_bits_per_byte, report.actual_bytes),
+            text: nocap_crypt_ui::explain_entropy_result_key(
+                report.shannon_bits_per_byte,
+                report.actual_bytes,
+            ),
         });
     }
     reporter.report(Event::Message {

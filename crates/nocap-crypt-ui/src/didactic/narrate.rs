@@ -357,14 +357,24 @@ mod tests {
         let diagram = xts_ascii_diagram();
         let lines: Vec<&str> = diagram.lines().collect();
         let block_row_width = lines[2].chars().count();
-        assert_eq!(lines[3].chars().count(), block_row_width, "connector row width drifted");
-        assert_eq!(lines[8].chars().count(), block_row_width, "second block row width drifted");
+        assert_eq!(
+            lines[3].chars().count(),
+            block_row_width,
+            "connector row width drifted"
+        );
+        assert_eq!(
+            lines[8].chars().count(),
+            block_row_width,
+            "second block row width drifted"
+        );
     }
 
     #[test]
     fn xts_malleability_explains_both_properties_without_naming_a_cve() {
         let text = explain_xts_malleability();
-        assert!(text.to_lowercase().contains("bit flip") || text.to_lowercase().contains("bit-level"));
+        assert!(
+            text.to_lowercase().contains("bit flip") || text.to_lowercase().contains("bit-level")
+        );
         assert!(text.to_lowercase().contains("replayed") || text.to_lowercase().contains("splice"));
         assert!(text.contains("confidentiality only"));
     }
@@ -399,8 +409,14 @@ mod tests {
     #[test]
     fn key_entropy_explanation_states_the_sample_size_ceiling_not_just_the_score() {
         let text = explain_entropy_result_key(5.7070, 64);
-        assert!(text.contains("64-byte"), "should name the actual sample size: {text:?}");
-        assert!(text.contains("6.00"), "should state the real ceiling for this length (log2(64)=6.0): {text:?}");
+        assert!(
+            text.contains("64-byte"),
+            "should name the actual sample size: {text:?}"
+        );
+        assert!(
+            text.contains("6.00"),
+            "should state the real ceiling for this length (log2(64)=6.0): {text:?}"
+        );
         assert!(
             text.to_lowercase().contains("capped"),
             "should make clear the low number is a sample-size cap, not a weak-RNG signal: {text:?}"
@@ -428,15 +444,27 @@ mod tests {
         let generic = explain_entropy_result_generic(7.9).to_lowercase();
 
         assert!(ciphertext.starts_with("this ciphertext"));
-        assert!(key.starts_with("this key"), "key entropy text should open by naming a key, not a ciphertext: {key:?}");
+        assert!(
+            key.starts_with("this key"),
+            "key entropy text should open by naming a key, not a ciphertext: {key:?}"
+        );
         assert!(
             generic.starts_with("this data"),
             "generic entropy text should not presume a specific origin: {generic:?}"
         );
 
-        for wrong_claim in ["forgotten unencrypted region", "attacker who flips ciphertext bits undetected"] {
-            assert!(!key.contains(wrong_claim), "key text repeats ciphertext-specific reasoning: {wrong_claim:?}");
-            assert!(!generic.contains(wrong_claim), "generic text repeats ciphertext-specific reasoning: {wrong_claim:?}");
+        for wrong_claim in [
+            "forgotten unencrypted region",
+            "attacker who flips ciphertext bits undetected",
+        ] {
+            assert!(
+                !key.contains(wrong_claim),
+                "key text repeats ciphertext-specific reasoning: {wrong_claim:?}"
+            );
+            assert!(
+                !generic.contains(wrong_claim),
+                "generic text repeats ciphertext-specific reasoning: {wrong_claim:?}"
+            );
         }
     }
 
@@ -444,21 +472,32 @@ mod tests {
     fn key_generation_explains_csprng_sourcing_for_both_cipher_families() {
         let xts = explain_key_generation(64, true);
         assert!(xts.to_lowercase().contains("csprng"));
-        assert!(xts.contains("32-byte"), "XTS variant should name the actual per-key half size: {xts:?}");
+        assert!(
+            xts.contains("32-byte"),
+            "XTS variant should name the actual per-key half size: {xts:?}"
+        );
         assert!(xts.to_lowercase().contains("tweak"));
 
         let cbc = explain_key_generation(32, false);
         assert!(cbc.to_lowercase().contains("csprng"));
         assert!(cbc.to_lowercase().contains("sha-256"));
-        assert!(!cbc.contains("32-byte AES keys"), "CBC-ESSIV has one key, not two: {cbc:?}");
+        assert!(
+            !cbc.contains("32-byte AES keys"),
+            "CBC-ESSIV has one key, not two: {cbc:?}"
+        );
     }
 
     #[test]
     fn key_generation_never_claims_a_password_derived_source() {
         // The whole point of this narration is that key material must
         // NOT come from something guessable — assert it says so.
-        for text in [explain_key_generation(64, true), explain_key_generation(32, false)] {
-            assert!(text.to_lowercase().contains("never derived from a password"));
+        for text in [
+            explain_key_generation(64, true),
+            explain_key_generation(32, false),
+        ] {
+            assert!(text
+                .to_lowercase()
+                .contains("never derived from a password"));
         }
     }
 
@@ -472,16 +511,25 @@ mod tests {
     #[test]
     fn bench_data_source_includes_the_real_seed_and_disclaims_cryptographic_use() {
         let text = explain_bench_data_source(42);
-        assert!(text.contains('4') && text.contains('2'), "seed value should appear: {text:?}");
+        assert!(
+            text.contains('4') && text.contains('2'),
+            "seed value should appear: {text:?}"
+        );
         assert!(text.to_lowercase().contains("non-cryptographic"));
-        assert!(text.to_lowercase().contains("csprng"), "should contrast against real key generation: {text:?}");
+        assert!(
+            text.to_lowercase().contains("csprng"),
+            "should contrast against real key generation: {text:?}"
+        );
     }
 
     #[test]
     fn bench_worker_count_pluralizes_correctly_and_names_the_count() {
         let one = explain_bench_worker_count(1);
         assert!(one.contains("workers=1"));
-        assert!(!one.contains("1 worker threads"), "should not pluralize for count 1: {one:?}");
+        assert!(
+            !one.contains("1 worker threads"),
+            "should not pluralize for count 1: {one:?}"
+        );
 
         let four = explain_bench_worker_count(4);
         assert!(four.contains("workers=4"));

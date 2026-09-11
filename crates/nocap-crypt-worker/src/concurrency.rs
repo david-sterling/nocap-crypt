@@ -81,7 +81,13 @@ mod tests {
 
     #[test]
     fn small_file_is_synchronous_even_with_override() {
-        let mode = resolve(1024, &dummy_path(), DEFAULT_SMALL_FILE_THRESHOLD_BYTES, false, Some(8));
+        let mode = resolve(
+            1024,
+            &dummy_path(),
+            DEFAULT_SMALL_FILE_THRESHOLD_BYTES,
+            false,
+            Some(8),
+        );
         assert_eq!(mode, Concurrency::Synchronous);
     }
 

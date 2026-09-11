@@ -24,7 +24,10 @@ use indicatif::{ProgressBar, ProgressStyle};
 use nocap_crypt_ui::ProgressFlavor;
 use rand::seq::SliceRandom;
 
-use ascii_frames::{cosmetic_percent_cap, final_reveal, frame_for, tinfoil_hat, HANDS_UP_TAGS, TOTAL_MIN_ANIMATION_TICKS};
+use ascii_frames::{
+    cosmetic_percent_cap, final_reveal, frame_for, tinfoil_hat, HANDS_UP_TAGS,
+    TOTAL_MIN_ANIMATION_TICKS,
+};
 use didactic_lines::{didactic_line_for, DIDACTIC_FINISH_LINE};
 
 const POLL_INTERVAL: Duration = Duration::from_millis(120);
@@ -75,7 +78,9 @@ impl LiveProgress {
         }
 
         let mut rng = rand::thread_rng();
-        let hands_up_tag = *HANDS_UP_TAGS.choose(&mut rng).expect("HANDS_UP_TAGS is never empty");
+        let hands_up_tag = *HANDS_UP_TAGS
+            .choose(&mut rng)
+            .expect("HANDS_UP_TAGS is never empty");
         let punchline_quote = *nocap_crypt_ui::SATIRICAL_QUOTES
             .choose(&mut rng)
             .expect("SATIRICAL_QUOTES is never empty");
@@ -91,9 +96,9 @@ impl LiveProgress {
 
         match flavor {
             ProgressFlavor::Sterile => {
-                if let Ok(style) =
-                    ProgressStyle::with_template("{prefix}: [{bar:40}] {percent}% (Completed in {elapsed_precise})")
-                {
+                if let Ok(style) = ProgressStyle::with_template(
+                    "{prefix}: [{bar:40}] {percent}% (Completed in {elapsed_precise})",
+                ) {
                     bar.set_style(style.progress_chars("#>-"));
                 }
                 bar.set_prefix(context);
@@ -137,10 +142,16 @@ impl LiveProgress {
                     match flavor {
                         ProgressFlavor::Meme => {
                             let display_percent = real_percent.min(cosmetic_percent_cap(tick));
-                            bar.set_message(colorize(frame_for(display_percent, tick, tag), no_color));
+                            bar.set_message(colorize(
+                                frame_for(display_percent, tick, tag),
+                                no_color,
+                            ));
                         }
                         ProgressFlavor::Didactic => {
-                            bar.set_message(colorize(didactic_line_for(tick).to_string(), no_color));
+                            bar.set_message(colorize(
+                                didactic_line_for(tick).to_string(),
+                                no_color,
+                            ));
                         }
                         ProgressFlavor::Sterile => {}
                     }
@@ -149,7 +160,8 @@ impl LiveProgress {
                     // seen) — Sterile and Didactic have no such reveal
                     // to protect, so they finish the instant real work
                     // does, same as before this fix.
-                    let min_ticks_satisfied = flavor != ProgressFlavor::Meme || tick >= TOTAL_MIN_ANIMATION_TICKS;
+                    let min_ticks_satisfied =
+                        flavor != ProgressFlavor::Meme || tick >= TOTAL_MIN_ANIMATION_TICKS;
                     if done >= total_bytes && min_ticks_satisfied {
                         break;
                     }
@@ -241,7 +253,10 @@ mod tests {
     #[test]
     fn colorize_strips_ansi_when_no_color_is_set() {
         let frame = frame_for(93.0, 0, "FBI"); // hands-up band: the tag argument is actually used here
-        assert!(frame.contains('\u{1b}'), "fixture should actually contain ANSI codes");
+        assert!(
+            frame.contains('\u{1b}'),
+            "fixture should actually contain ANSI codes"
+        );
         let stripped = colorize(frame, true);
         assert!(!stripped.contains('\u{1b}'));
         assert!(stripped.contains("[ FBI ]"));

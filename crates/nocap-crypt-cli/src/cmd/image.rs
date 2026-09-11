@@ -12,8 +12,8 @@ use nocap_crypt_blockio::{create_sparse_output, SectorFile};
 use nocap_crypt_core::{plain64_iv, CipherSpec, SectorEngine};
 use nocap_crypt_ui::{Event, ProgressFlavor, Reporter};
 use nocap_crypt_worker::{
-    chunk_ranges, compute_system_info, process_ranges, resolve_concurrency, Concurrency, DispatchInfo, SectorRange,
-    DEFAULT_SMALL_FILE_THRESHOLD_BYTES,
+    chunk_ranges, compute_system_info, process_ranges, resolve_concurrency, Concurrency,
+    DispatchInfo, SectorRange, DEFAULT_SMALL_FILE_THRESHOLD_BYTES,
 };
 
 use crate::ci_progress;
@@ -72,11 +72,19 @@ fn dispatch_with_progress(
                     Some(&counter),
                 )
             });
-            ci_progress::run(reporter, &counter, job.progress_total_bytes, || handle.is_finished());
+            ci_progress::run(reporter, &counter, job.progress_total_bytes, || {
+                handle.is_finished()
+            });
             handle.join().expect("worker thread panicked")
         })
     } else {
-        let progress = LiveProgress::start(job.progress_total_bytes, context, show_progress, reporter.progress_flavor(), no_color);
+        let progress = LiveProgress::start(
+            job.progress_total_bytes,
+            context,
+            show_progress,
+            reporter.progress_flavor(),
+            no_color,
+        );
         let progress_counter: Option<&AtomicU64> = progress.as_ref().map(|p| p.counter().as_ref());
         let result = process_ranges(
             job.input_file,
@@ -112,7 +120,9 @@ fn progress_context(
     if reporter.progress_flavor() != ProgressFlavor::Didactic {
         return format!("{op} / {}", spec.as_str());
     }
-    let hw = hw_description.map(|d| format!(" | hw: {d}")).unwrap_or_default();
+    let hw = hw_description
+        .map(|d| format!(" | hw: {d}"))
+        .unwrap_or_default();
     format!(
         "{} (AES-{}) | concurrency: {concurrency:?}{hw} | chunk: {chunk_sectors} sectors",
         spec.as_str(),
@@ -224,17 +234,23 @@ fn resolve_spec_and_key(
     reporter: &dyn Reporter,
 ) -> Result<(CipherSpec, Vec<u8>), ExitCode> {
     let spec = resolve_cipher_spec(cipher, key_size).map_err(|e| {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         ExitCode::UnsupportedCipher
     })?;
 
     let key = load_key_file(key_file, key_format).map_err(|e| {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         ExitCode::Io
     })?;
 
     if let Err(e) = nocap_crypt_keymgmt::validate_key(&spec, &key) {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         return Err(ExitCode::KeyValidation);
     }
 
@@ -265,9 +281,15 @@ fn narrate_cipher_intro(reporter: &dyn Reporter, spec: &CipherSpec) {
     });
 }
 
-fn build_engine(spec: CipherSpec, key: &[u8], reporter: &dyn Reporter) -> Result<SectorEngine, ExitCode> {
+fn build_engine(
+    spec: CipherSpec,
+    key: &[u8],
+    reporter: &dyn Reporter,
+) -> Result<SectorEngine, ExitCode> {
     SectorEngine::new(spec, key).map_err(|e| {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         ExitCode::KeyValidation
     })
 }
@@ -326,7 +348,13 @@ fn resolve_and_report_concurrency(
     reporter: &dyn Reporter,
 ) -> (DispatchInfo, Concurrency) {
     let sys_info = compute_system_info(input_path);
-    let concurrency = resolve_concurrency(input_len, input_path, small_file_threshold, pin_to_submission_thread, max_workers);
+    let concurrency = resolve_concurrency(
+        input_len,
+        input_path,
+        small_file_threshold,
+        pin_to_submission_thread,
+        max_workers,
+    );
     reporter.report(Event::ConcurrencyInfo {
         effective_cores: sys_info.effective_cores,
         disk_type: format!("{:?}", sys_info.disk_type),
@@ -345,7 +373,11 @@ fn open_input_file(path: &Path, reporter: &dyn Reporter) -> Result<SectorFile, E
     })
 }
 
-fn open_output_file(path: &Path, size: u64, reporter: &dyn Reporter) -> Result<SectorFile, ExitCode> {
+fn open_output_file(
+    path: &Path,
+    size: u64,
+    reporter: &dyn Reporter,
+) -> Result<SectorFile, ExitCode> {
     create_sparse_output(path, size).map_err(|e| {
         reporter.report(Event::Error {
             text: format!("creating {}: {e}", path.display()),
@@ -385,7 +417,9 @@ fn transfer_and_report_timing(
     let progress_total_bytes = job.progress_total_bytes;
     let result = dispatch_with_progress(reporter, job, context, show_progress, no_color);
     if let Err(e) = result {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         return Err(ExitCode::Io);
     }
     let elapsed = start.elapsed();
@@ -400,23 +434,44 @@ fn transfer_and_report_timing(
 
 // --- Encrypt/decrypt entry points ---------------------------------------
 
-pub fn run_encrypt(args: &EncryptArgs, reporter: &dyn Reporter, show_progress: bool, no_color: bool) -> ExitCode {
+pub fn run_encrypt(
+    args: &EncryptArgs,
+    reporter: &dyn Reporter,
+    show_progress: bool,
+    no_color: bool,
+) -> ExitCode {
     match run_encrypt_impl(args, reporter, show_progress, no_color) {
         Ok(code) | Err(code) => code,
     }
 }
 
-fn run_encrypt_impl(args: &EncryptArgs, reporter: &dyn Reporter, show_progress: bool, no_color: bool) -> Result<ExitCode, ExitCode> {
+fn run_encrypt_impl(
+    args: &EncryptArgs,
+    reporter: &dyn Reporter,
+    show_progress: bool,
+    no_color: bool,
+) -> Result<ExitCode, ExitCode> {
     if let Some(banner) = reporter.boot_banner() {
-        reporter.report(Event::Banner { text: banner.to_string() });
+        reporter.report(Event::Banner {
+            text: banner.to_string(),
+        });
     }
 
-    let (spec, key) = resolve_spec_and_key(args.cipher, args.key_size, &args.key_file, args.key_format, reporter)?;
+    let (spec, key) = resolve_spec_and_key(
+        args.cipher,
+        args.key_size,
+        &args.key_file,
+        args.key_format,
+        reporter,
+    )?;
     narrate_cipher_intro(reporter, &spec);
 
     if reporter.narrates() {
         reporter.report(Event::Narration {
-            text: format!("key fingerprint: {}", nocap_crypt_keymgmt::fingerprint(&key)),
+            text: format!(
+                "key fingerprint: {}",
+                nocap_crypt_keymgmt::fingerprint(&key)
+            ),
         });
         reporter.report(Event::Narration {
             text: nocap_crypt_ui::explain_headerless_plain_reference().to_string(),
@@ -439,7 +494,12 @@ fn run_encrypt_impl(args: &EncryptArgs, reporter: &dyn Reporter, show_progress: 
     let engine = build_engine(spec, &key, reporter)?;
     let input_len = stat_input_len(&args.input, reporter)?;
 
-    let output_size = aligned_output_size(input_len, args.align_block_size, args.align_extra_block, reporter)?;
+    let output_size = aligned_output_size(
+        input_len,
+        args.align_block_size,
+        args.align_extra_block,
+        reporter,
+    )?;
     reporter.report(Event::AlignmentStatus {
         path: args.output.display().to_string(),
         aligned: true,
@@ -487,7 +547,14 @@ fn run_encrypt_impl(args: &EncryptArgs, reporter: &dyn Reporter, show_progress: 
             encrypt: true,
         },
         "encrypt",
-        progress_context(reporter, "encrypt", &spec, concurrency, sys_info.chunk_sectors, Some(&hw.active_path_description)),
+        progress_context(
+            reporter,
+            "encrypt",
+            &spec,
+            concurrency,
+            sys_info.chunk_sectors,
+            Some(&hw.active_path_description),
+        ),
         show_progress,
         no_color,
     )?;
@@ -510,7 +577,9 @@ fn run_encrypt_impl(args: &EncryptArgs, reporter: &dyn Reporter, show_progress: 
 
     if args.dry_run_cryptsetup_compat {
         let outcome = cryptsetup_compat::run(spec, &key);
-        reporter.report(Event::Message { text: outcome.message() });
+        reporter.report(Event::Message {
+            text: outcome.message(),
+        });
         if outcome.is_failure() {
             return Ok(ExitCode::LuksCompat);
         }
@@ -519,18 +588,36 @@ fn run_encrypt_impl(args: &EncryptArgs, reporter: &dyn Reporter, show_progress: 
     Ok(ExitCode::Success)
 }
 
-pub fn run_decrypt(args: &DecryptArgs, reporter: &dyn Reporter, show_progress: bool, no_color: bool) -> ExitCode {
+pub fn run_decrypt(
+    args: &DecryptArgs,
+    reporter: &dyn Reporter,
+    show_progress: bool,
+    no_color: bool,
+) -> ExitCode {
     match run_decrypt_impl(args, reporter, show_progress, no_color) {
         Ok(code) | Err(code) => code,
     }
 }
 
-fn run_decrypt_impl(args: &DecryptArgs, reporter: &dyn Reporter, show_progress: bool, no_color: bool) -> Result<ExitCode, ExitCode> {
+fn run_decrypt_impl(
+    args: &DecryptArgs,
+    reporter: &dyn Reporter,
+    show_progress: bool,
+    no_color: bool,
+) -> Result<ExitCode, ExitCode> {
     if let Some(banner) = reporter.boot_banner() {
-        reporter.report(Event::Banner { text: banner.to_string() });
+        reporter.report(Event::Banner {
+            text: banner.to_string(),
+        });
     }
 
-    let (spec, key) = resolve_spec_and_key(args.cipher, args.key_size, &args.key_file, args.key_format, reporter)?;
+    let (spec, key) = resolve_spec_and_key(
+        args.cipher,
+        args.key_size,
+        &args.key_file,
+        args.key_format,
+        reporter,
+    )?;
     narrate_cipher_intro(reporter, &spec);
 
     let engine = build_engine(spec, &key, reporter)?;
@@ -568,7 +655,14 @@ fn run_decrypt_impl(args: &DecryptArgs, reporter: &dyn Reporter, show_progress: 
             encrypt: false,
         },
         "decrypt",
-        progress_context(reporter, "decrypt", &spec, concurrency, sys_info.chunk_sectors, None),
+        progress_context(
+            reporter,
+            "decrypt",
+            &spec,
+            concurrency,
+            sys_info.chunk_sectors,
+            None,
+        ),
         show_progress,
         no_color,
     )?;
@@ -582,7 +676,11 @@ mod tests {
     use nocap_crypt_ui::Silent;
 
     fn temp_path(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("nocap-crypt-cli-image-test-{}-{}", std::process::id(), name))
+        std::env::temp_dir().join(format!(
+            "nocap-crypt-cli-image-test-{}-{}",
+            std::process::id(),
+            name
+        ))
     }
 
     /// Regression test: `--align-block-size`/`--align-extra-block`'s
@@ -703,10 +801,13 @@ mod tests {
         assert_eq!(exit, ExitCode::Success);
 
         let events = reporter.events.lock().unwrap();
-        let found = events
-            .iter()
-            .any(|e| matches!(e, Event::Message { text } if text.contains("dry-run-cryptsetup-compat")));
-        assert!(found, "expected a --dry-run-cryptsetup-compat message event, got: {events:?}");
+        let found = events.iter().any(
+            |e| matches!(e, Event::Message { text } if text.contains("dry-run-cryptsetup-compat")),
+        );
+        assert!(
+            found,
+            "expected a --dry-run-cryptsetup-compat message event, got: {events:?}"
+        );
 
         for p in [input_path, output_path, key_path] {
             std::fs::remove_file(p).ok();

@@ -28,7 +28,12 @@ const IDLE_FALLBACK: Duration = Duration::from_secs(30);
 /// encrypt) must still get its final state reported, or `--ci` mode
 /// emits zero `Event::Progress` lines — not even the closing 100%
 /// one — for that run.
-pub fn run(reporter: &dyn Reporter, counter: &AtomicU64, total_bytes: u64, is_finished: impl Fn() -> bool) {
+pub fn run(
+    reporter: &dyn Reporter,
+    counter: &AtomicU64,
+    total_bytes: u64,
+    is_finished: impl Fn() -> bool,
+) {
     if total_bytes == 0 {
         return;
     }
@@ -85,7 +90,9 @@ mod tests {
 
     #[test]
     fn zero_total_bytes_reports_nothing_and_returns_immediately() {
-        let reporter = RecordingReporter { events: Mutex::new(Vec::new()) };
+        let reporter = RecordingReporter {
+            events: Mutex::new(Vec::new()),
+        };
         let counter = AtomicU64::new(0);
         run(&reporter, &counter, 0, || true);
         assert!(reporter.events.lock().unwrap().is_empty());
@@ -93,7 +100,9 @@ mod tests {
 
     #[test]
     fn reports_at_least_once_for_a_completed_operation() {
-        let reporter = RecordingReporter { events: Mutex::new(Vec::new()) };
+        let reporter = RecordingReporter {
+            events: Mutex::new(Vec::new()),
+        };
         let counter = AtomicU64::new(1000);
         // is_finished() is false on the first check (so the loop body
         // runs and observes the counter's already-complete state at
@@ -120,11 +129,17 @@ mod tests {
     /// for any fast operation) produced zero `Event::Progress` lines.
     #[test]
     fn already_finished_on_first_check_still_reports_final_state() {
-        let reporter = RecordingReporter { events: Mutex::new(Vec::new()) };
+        let reporter = RecordingReporter {
+            events: Mutex::new(Vec::new()),
+        };
         let counter = AtomicU64::new(1000);
         run(&reporter, &counter, 1000, || true);
         let events = reporter.events.lock().unwrap();
-        assert_eq!(events.len(), 1, "must report exactly once, even when already finished on entry");
+        assert_eq!(
+            events.len(),
+            1,
+            "must report exactly once, even when already finished on entry"
+        );
         assert!(matches!(events[0], Event::Progress { percent, .. } if percent == 100.0));
     }
 }

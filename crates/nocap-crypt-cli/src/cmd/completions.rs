@@ -38,7 +38,12 @@ use clap_complete::Shell;
 /// practice is usually stdout, which a completely ordinary shell
 /// pipeline (`nocap-crypt completions bash | head`) can close out from
 /// under a still-writing process.
-pub fn generate(shell: Shell, command: &mut Command, bin_name: &str, out: &mut dyn io::Write) -> io::Result<()> {
+pub fn generate(
+    shell: Shell,
+    command: &mut Command,
+    bin_name: &str,
+    out: &mut dyn io::Write,
+) -> io::Result<()> {
     if shell == Shell::Bash && bin_name.contains('-') {
         generate_bash_with_hyphen_workaround(command, bin_name, out)
     } else {
@@ -51,12 +56,17 @@ pub fn generate(shell: Shell, command: &mut Command, bin_name: &str, out: &mut d
     }
 }
 
-fn generate_bash_with_hyphen_workaround(command: &mut Command, bin_name: &str, out: &mut dyn io::Write) -> io::Result<()> {
+fn generate_bash_with_hyphen_workaround(
+    command: &mut Command,
+    bin_name: &str,
+    out: &mut dyn io::Write,
+) -> io::Result<()> {
     let safe_name = bin_name.replace('-', "_");
 
     let mut buf = Vec::new();
     clap_complete::generate(Shell::Bash, command, &safe_name, &mut buf);
-    let script = String::from_utf8(buf).expect("clap_complete's bash generator always emits valid UTF-8");
+    let script =
+        String::from_utf8(buf).expect("clap_complete's bash generator always emits valid UTF-8");
 
     // Only the trailing `complete -F _fn ... <bin_name>` registration
     // line(s) need the real name — every other occurrence of
@@ -67,7 +77,9 @@ fn generate_bash_with_hyphen_workaround(command: &mut Command, bin_name: &str, o
         .split_inclusive('\n')
         .map(|line| {
             let trimmed = line.trim_end_matches(['\n', '\r']);
-            if trimmed.trim_start().starts_with("complete -F") && trimmed.ends_with(safe_name.as_str()) {
+            if trimmed.trim_start().starts_with("complete -F")
+                && trimmed.ends_with(safe_name.as_str())
+            {
                 let line_ending = &line[trimmed.len()..];
                 let prefix = &trimmed[..trimmed.len() - safe_name.len()];
                 format!("{prefix}{bin_name}{line_ending}")
@@ -90,7 +102,9 @@ mod tests {
         Command::new("nocap-crypt")
             .arg(clap::Arg::new("input").long("input"))
             .subcommand(
-                Command::new("image").subcommand(Command::new("encrypt").arg(clap::Arg::new("cipher").long("cipher"))),
+                Command::new("image").subcommand(
+                    Command::new("encrypt").arg(clap::Arg::new("cipher").long("cipher")),
+                ),
             )
     }
 
@@ -117,8 +131,14 @@ mod tests {
         let mut buf = Vec::new();
         generate(Shell::Bash, &mut dummy_command(), "nocap-crypt", &mut buf).unwrap();
         let script = String::from_utf8(buf).unwrap();
-        let registration_lines: Vec<&str> = script.lines().filter(|l| l.trim_start().starts_with("complete -F")).collect();
-        assert!(!registration_lines.is_empty(), "no `complete -F` registration line found");
+        let registration_lines: Vec<&str> = script
+            .lines()
+            .filter(|l| l.trim_start().starts_with("complete -F"))
+            .collect();
+        assert!(
+            !registration_lines.is_empty(),
+            "no `complete -F` registration line found"
+        );
         for line in registration_lines {
             assert!(
                 line.trim_end().ends_with("nocap-crypt"),
@@ -163,7 +183,13 @@ mod tests {
             }
         }
 
-        let missing: Vec<&&str> = assigned.iter().filter(|label| !case_arms.contains(*label)).collect();
-        assert!(missing.is_empty(), "state label(s) assigned but never matched by a case arm: {missing:?}");
+        let missing: Vec<&&str> = assigned
+            .iter()
+            .filter(|label| !case_arms.contains(*label))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "state label(s) assigned but never matched by a case arm: {missing:?}"
+        );
     }
 }

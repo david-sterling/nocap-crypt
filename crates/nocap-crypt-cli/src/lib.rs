@@ -153,7 +153,15 @@ pub fn run() {
     }
 
     let json = matches!(cli.log_format, LogFormatArg::Json);
-    let reporter = reporter_setup::build_reporter(cli.quiet, cli.ci, cli.governance, cli.verbose, cli.didactic, json, cli.no_color);
+    let reporter = reporter_setup::build_reporter(
+        cli.quiet,
+        cli.ci,
+        cli.governance,
+        cli.verbose,
+        cli.didactic,
+        json,
+        cli.no_color,
+    );
     // Progress bars are a text-mode-only affordance: mixing an
     // indicatif render into --log-format json would corrupt the
     // structured stdout stream a CI step is trying to parse.
@@ -164,7 +172,9 @@ pub fn run() {
     // reader before any technical output, regardless of which
     // subcommand ends up running.
     if let Some(primer) = reporter.didactic_primer() {
-        reporter.report(Event::Narration { text: primer.to_string() });
+        reporter.report(Event::Narration {
+            text: primer.to_string(),
+        });
     }
 
     let start = Instant::now();
@@ -197,8 +207,12 @@ fn run_command(cli: &Cli, reporter: &dyn Reporter, json: bool, show_progress: bo
 
     match command {
         Command::Image { action } => match action {
-            ImageAction::Encrypt(args) => cmd::image::run_encrypt(args, reporter, show_progress, cli.no_color),
-            ImageAction::Decrypt(args) => cmd::image::run_decrypt(args, reporter, show_progress, cli.no_color),
+            ImageAction::Encrypt(args) => {
+                cmd::image::run_encrypt(args, reporter, show_progress, cli.no_color)
+            }
+            ImageAction::Decrypt(args) => {
+                cmd::image::run_decrypt(args, reporter, show_progress, cli.no_color)
+            }
         },
         Command::Keygen(args) => cmd::keygen::run(args, reporter),
         Command::Keycheck(args) => cmd::keycheck::run(args, reporter),
@@ -209,11 +223,18 @@ fn run_command(cli: &Cli, reporter: &dyn Reporter, json: bool, show_progress: bo
             AlignAction::Check(args) => cmd::align::run_check(args, reporter),
             AlignAction::Fix(args) => cmd::align::run_fix(args, reporter),
         },
-        Command::Bench(args) => cmd::bench::run_bench(args, reporter, json, show_progress, cli.no_color),
+        Command::Bench(args) => {
+            cmd::bench::run_bench(args, reporter, json, show_progress, cli.no_color)
+        }
         Command::Info => cmd::info::run(reporter, json),
         Command::Completions { shell } => {
             let mut command = <Cli as clap::CommandFactory>::command();
-            match cmd::completions::generate(*shell, &mut command, "nocap-crypt", &mut std::io::stdout()) {
+            match cmd::completions::generate(
+                *shell,
+                &mut command,
+                "nocap-crypt",
+                &mut std::io::stdout(),
+            ) {
                 Ok(()) => ExitCode::Success,
                 Err(e) => {
                     reporter.report(Event::Error {
@@ -232,8 +253,12 @@ fn run_command(cli: &Cli, reporter: &dyn Reporter, json: bool, show_progress: bo
 /// only for now).
 fn run_from_env(reporter: &dyn Reporter, show_progress: bool, no_color: bool) -> ExitCode {
     match env_config::resolve_from_env() {
-        Ok(env_config::Operation::Encrypt(args)) => cmd::image::run_encrypt(&args, reporter, show_progress, no_color),
-        Ok(env_config::Operation::Decrypt(args)) => cmd::image::run_decrypt(&args, reporter, show_progress, no_color),
+        Ok(env_config::Operation::Encrypt(args)) => {
+            cmd::image::run_encrypt(&args, reporter, show_progress, no_color)
+        }
+        Ok(env_config::Operation::Decrypt(args)) => {
+            cmd::image::run_decrypt(&args, reporter, show_progress, no_color)
+        }
         Err(text) => {
             reporter.report(Event::Error { text });
             ExitCode::InvalidArgs

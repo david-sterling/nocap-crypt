@@ -66,7 +66,10 @@ mod tests {
             assert!(!seen[b as usize], "duplicate S-box output {b:#04x}");
             seen[b as usize] = true;
         }
-        assert!(seen.iter().all(|&s| s), "S-box is not a full permutation of 0..=255");
+        assert!(
+            seen.iter().all(|&s| s),
+            "S-box is not a full permutation of 0..=255"
+        );
     }
 
     #[test]

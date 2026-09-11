@@ -40,7 +40,10 @@ impl StreamEntropyReport {
 /// 4KiB matches typical sector/page granularity, see `nocap-crypt entropy`
 /// CLI default), scoring each window independently plus an overall
 /// whole-stream Shannon figure.
-pub fn analyze_stream<R: Read>(mut reader: R, window_size: usize) -> io::Result<StreamEntropyReport> {
+pub fn analyze_stream<R: Read>(
+    mut reader: R,
+    window_size: usize,
+) -> io::Result<StreamEntropyReport> {
     assert!(window_size > 0, "window_size must be nonzero");
 
     let mut buf = vec![0u8; window_size];

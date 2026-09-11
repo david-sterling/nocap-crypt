@@ -21,7 +21,8 @@ pub fn didactic_line_for(tick: u64) -> &'static str {
     DIDACTIC_LINES[(tick / DIDACTIC_LINE_TICKS) as usize % DIDACTIC_LINES.len()]
 }
 
-pub const DIDACTIC_FINISH_LINE: &str = "done \u{2014} every sector is now unreadable without the key, and there's no \
+pub const DIDACTIC_FINISH_LINE: &str =
+    "done \u{2014} every sector is now unreadable without the key, and there's no \
      header giving away that this file is encrypted at all.";
 
 #[cfg(test)]
@@ -32,7 +33,10 @@ mod tests {
     fn didactic_lines_rotate_over_ticks_and_wrap_around() {
         let first = didactic_line_for(0);
         let second = didactic_line_for(DIDACTIC_LINE_TICKS);
-        assert_ne!(first, second, "line must change once enough ticks have passed");
+        assert_ne!(
+            first, second,
+            "line must change once enough ticks have passed"
+        );
         assert_eq!(
             first,
             didactic_line_for(DIDACTIC_LINE_TICKS * DIDACTIC_LINES.len() as u64),

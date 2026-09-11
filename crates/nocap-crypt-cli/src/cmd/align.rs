@@ -55,9 +55,17 @@ pub fn run_check(args: &AlignCheckArgs, reporter: &dyn Reporter) -> ExitCode {
         text: format!(
             "file_size={} ({}), offset={} ({})",
             report.file_size,
-            if report.file_size_aligned { "aligned" } else { "NOT aligned" },
+            if report.file_size_aligned {
+                "aligned"
+            } else {
+                "NOT aligned"
+            },
             report.offset,
-            if report.offset_aligned { "aligned" } else { "NOT aligned" },
+            if report.offset_aligned {
+                "aligned"
+            } else {
+                "NOT aligned"
+            },
         ),
     });
 
@@ -82,7 +90,11 @@ pub fn run_fix(args: &AlignFixArgs, reporter: &dyn Reporter) -> ExitCode {
     let target = align_up(file_size, args.alignment);
     if target == file_size {
         reporter.report(Event::Message {
-            text: format!("{} already aligned to {} bytes", args.path.display(), args.alignment),
+            text: format!(
+                "{} already aligned to {} bytes",
+                args.path.display(),
+                args.alignment
+            ),
         });
         return ExitCode::Success;
     }
@@ -97,7 +109,9 @@ pub fn run_fix(args: &AlignFixArgs, reporter: &dyn Reporter) -> ExitCode {
         }
     };
     if let Err(e) = sf.set_len(target) {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         return ExitCode::Io;
     }
 

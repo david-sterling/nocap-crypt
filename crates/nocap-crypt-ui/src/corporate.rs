@@ -128,16 +128,28 @@ mod tests {
     #[test]
     fn corporate_suppresses_flexy_events() {
         for event in [
-            Event::HardwareAccelPath { description: "AES-NI".into() },
+            Event::HardwareAccelPath {
+                description: "AES-NI".into(),
+            },
             Event::ConcurrencyInfo {
                 effective_cores: 4,
                 disk_type: "Ssd".into(),
                 chunk_sectors: 8,
                 concurrency: "GlobalPool".into(),
             },
-            Event::AlignmentStatus { path: "/tmp/x".into(), aligned: true, required_alignment: 4096 },
-            Event::Narration { text: "sector 0".into() },
-            Event::Progress { percent: 50.0, bytes_per_sec: None, elapsed_secs: 1.0 },
+            Event::AlignmentStatus {
+                path: "/tmp/x".into(),
+                aligned: true,
+                required_alignment: 4096,
+            },
+            Event::Narration {
+                text: "sector 0".into(),
+            },
+            Event::Progress {
+                percent: 50.0,
+                bytes_per_sec: None,
+                elapsed_secs: 1.0,
+            },
             Event::Outcome {
                 success: true,
                 error_code: "NC-000".into(),
@@ -152,12 +164,28 @@ mod tests {
     #[test]
     fn corporate_format_has_no_muga_wording() {
         let events = [
-            Event::CipherSelected { cipher: "aes-xts-plain64".into(), key_bits: 256 },
-            Event::PhaseTiming { phase: "encrypt".into(), duration_ms: 1400, throughput_mb_s: Some(150.2) },
-            Event::EntropyScore { bits_per_byte: 7.998, chi_square_uniform_95: true },
-            Event::Banner { text: "some banner".into() },
-            Event::Message { text: "hello".into() },
-            Event::Error { text: "boom".into() },
+            Event::CipherSelected {
+                cipher: "aes-xts-plain64".into(),
+                key_bits: 256,
+            },
+            Event::PhaseTiming {
+                phase: "encrypt".into(),
+                duration_ms: 1400,
+                throughput_mb_s: Some(150.2),
+            },
+            Event::EntropyScore {
+                bits_per_byte: 7.998,
+                chi_square_uniform_95: true,
+            },
+            Event::Banner {
+                text: "some banner".into(),
+            },
+            Event::Message {
+                text: "hello".into(),
+            },
+            Event::Error {
+                text: "boom".into(),
+            },
         ];
         for event in events {
             if let Some(line) = format_corporate(&event) {

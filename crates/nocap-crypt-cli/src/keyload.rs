@@ -76,7 +76,10 @@ pub fn load_key_file(path: &Path, format: KeyFormatArg) -> Result<Vec<u8>, KeyLo
 /// to a string it accepts) but stays in the call path unchanged rather
 /// than being bypassed, so this is still the single place cipher-spec
 /// string parsing happens.
-pub fn resolve_cipher_spec(cipher: CipherArg, key_size_bits: Option<u16>) -> Result<CipherSpec, CipherSpecError> {
+pub fn resolve_cipher_spec(
+    cipher: CipherArg,
+    key_size_bits: Option<u16>,
+) -> Result<CipherSpec, CipherSpecError> {
     let spec = CipherSpec::parse(cipher.as_str())?;
     match key_size_bits {
         Some(bits) => spec.with_aes_bits(bits),

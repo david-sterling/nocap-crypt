@@ -55,7 +55,8 @@ pub fn run(params: &BenchParams, progress: Option<&AtomicU64>) -> io::Result<Ben
     let data = gen.generate(params.data_len_bytes as usize);
     std::fs::write(&in_path, &data)?;
 
-    let sector_rounded_len = params.data_len_bytes.div_ceil(SECTOR_SIZE as u64) * SECTOR_SIZE as u64;
+    let sector_rounded_len =
+        params.data_len_bytes.div_ceil(SECTOR_SIZE as u64) * SECTOR_SIZE as u64;
     let ranges = chunk_ranges(params.data_len_bytes, params.chunk_sectors.max(1));
 
     let input = SectorFile::open_read(&in_path)?;

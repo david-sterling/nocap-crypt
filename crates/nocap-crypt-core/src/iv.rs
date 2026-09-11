@@ -52,5 +52,4 @@ mod tests {
         assert_eq!(&iv[..8], &[0xff; 8]);
         assert_eq!(&iv[8..], &[0u8; 8]);
     }
-
 }

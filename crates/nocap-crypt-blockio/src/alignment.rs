@@ -58,7 +58,10 @@ pub struct AlignedBuffer {
 
 impl AlignedBuffer {
     pub fn new(len: usize, alignment: usize) -> Self {
-        assert!(alignment.is_power_of_two(), "alignment must be a power of two");
+        assert!(
+            alignment.is_power_of_two(),
+            "alignment must be a power of two"
+        );
         let mut data = vec![0u8; len + alignment];
         let base = data.as_ptr() as usize;
         let aligned = (base + alignment - 1) & !(alignment - 1);
@@ -124,7 +127,8 @@ mod tests {
     #[test]
     fn aligned_buffer_is_writable_and_readable() {
         let mut buf = AlignedBuffer::new(16, 512);
-        buf.as_mut_slice().copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        buf.as_mut_slice()
+            .copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         assert_eq!(buf.as_slice()[0], 1);
         assert_eq!(buf.as_slice()[15], 16);
     }

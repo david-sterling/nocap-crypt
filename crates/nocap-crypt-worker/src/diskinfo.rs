@@ -45,7 +45,8 @@ fn base_device_name(name: &str) -> String {
     if name.starts_with("nvme") || name.starts_with("mmcblk") || name.starts_with("loop") {
         return name.to_string();
     }
-    name.trim_end_matches(|c: char| c.is_ascii_digit()).to_string()
+    name.trim_end_matches(|c: char| c.is_ascii_digit())
+        .to_string()
 }
 
 #[cfg(target_os = "linux")]
@@ -71,7 +72,9 @@ mod platform {
             let device = parts.next()?;
             let mount_point = parts.next()?;
             if canonical.starts_with(mount_point)
-                && best.as_ref().is_none_or(|(len, _)| mount_point.len() > *len)
+                && best
+                    .as_ref()
+                    .is_none_or(|(len, _)| mount_point.len() > *len)
             {
                 best = Some((mount_point.len(), device.to_string()));
             }

@@ -66,15 +66,18 @@ impl SectorEngine {
                 let half = key.len() / 2;
                 let (k1, k2) = key.split_at(half);
                 let variant = match spec.aes_bits {
-                    AesKeyBits::Bits128 => {
-                        XtsVariant::Aes128(Xts128::new(Aes128::new(k1.into()), Aes128::new(k2.into())))
-                    }
-                    AesKeyBits::Bits192 => {
-                        XtsVariant::Aes192(Xts128::new(Aes192::new(k1.into()), Aes192::new(k2.into())))
-                    }
-                    AesKeyBits::Bits256 => {
-                        XtsVariant::Aes256(Xts128::new(Aes256::new(k1.into()), Aes256::new(k2.into())))
-                    }
+                    AesKeyBits::Bits128 => XtsVariant::Aes128(Xts128::new(
+                        Aes128::new(k1.into()),
+                        Aes128::new(k2.into()),
+                    )),
+                    AesKeyBits::Bits192 => XtsVariant::Aes192(Xts128::new(
+                        Aes192::new(k1.into()),
+                        Aes192::new(k2.into()),
+                    )),
+                    AesKeyBits::Bits256 => XtsVariant::Aes256(Xts128::new(
+                        Aes256::new(k1.into()),
+                        Aes256::new(k2.into()),
+                    )),
                 };
                 Ok(SectorEngine::Xts(variant))
             }
@@ -148,7 +151,12 @@ impl SectorEngine {
 /// Manual per-sector CBC-ESSIV: IV resets every [`SECTOR_SIZE`] bytes to
 /// `E_essiv(plain64_iv(sector))`, then standard CBC chaining applies
 /// across the 16-byte AES blocks within that one sector only.
-fn cbc_essiv_crypt_range(variant: &CbcEssivVariant, first_sector: u64, buf: &mut [u8], encrypt: bool) {
+fn cbc_essiv_crypt_range(
+    variant: &CbcEssivVariant,
+    first_sector: u64,
+    buf: &mut [u8],
+    encrypt: bool,
+) {
     let sectors = buf.len() / SECTOR_SIZE;
     for s in 0..sectors {
         let sector_index = first_sector + s as u64;
@@ -247,7 +255,10 @@ mod tests {
         let mut b = plaintext.clone();
         engine.encrypt_range(0, &mut a);
         engine.encrypt_range(1, &mut b);
-        assert_ne!(a, b, "identical plaintext at different sectors must produce different ciphertext");
+        assert_ne!(
+            a, b,
+            "identical plaintext at different sectors must produce different ciphertext"
+        );
     }
 
     #[test]

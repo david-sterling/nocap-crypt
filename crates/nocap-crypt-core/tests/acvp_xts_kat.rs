@@ -52,7 +52,12 @@ fn run_case(v: &RawVector) {
     let pt = hex::decode(&v.pt).unwrap();
     let ct = hex::decode(&v.ct).unwrap();
     let tweak_bytes = hex::decode(&v.tweak).unwrap();
-    assert_eq!(tweak_bytes.len(), 16, "tc {}: tweak must be 16 bytes", v.tc_id);
+    assert_eq!(
+        tweak_bytes.len(),
+        16,
+        "tc {}: tweak must be 16 bytes",
+        v.tc_id
+    );
     let mut tweak = [0u8; 16];
     tweak.copy_from_slice(&tweak_bytes);
 
@@ -62,7 +67,11 @@ fn run_case(v: &RawVector) {
     match v.key_len {
         128 => {
             let xts = Xts128::new(Aes128::new(k1.into()), Aes128::new(k2.into()));
-            let mut buf = if v.direction == "encrypt" { pt.clone() } else { ct.clone() };
+            let mut buf = if v.direction == "encrypt" {
+                pt.clone()
+            } else {
+                ct.clone()
+            };
             if v.direction == "encrypt" {
                 xts.encrypt_sector(&mut buf, tweak);
                 assert_eq!(buf, ct, "tc {} (AES-128, encrypt) mismatch", v.tc_id);
@@ -73,7 +82,11 @@ fn run_case(v: &RawVector) {
         }
         256 => {
             let xts = Xts128::new(Aes256::new(k1.into()), Aes256::new(k2.into()));
-            let mut buf = if v.direction == "encrypt" { pt.clone() } else { ct.clone() };
+            let mut buf = if v.direction == "encrypt" {
+                pt.clone()
+            } else {
+                ct.clone()
+            };
             if v.direction == "encrypt" {
                 xts.encrypt_sector(&mut buf, tweak);
                 assert_eq!(buf, ct, "tc {} (AES-256, encrypt) mismatch", v.tc_id);
@@ -90,7 +103,11 @@ fn run_case(v: &RawVector) {
 fn acvp_aes_xts_1_0_known_answer_vectors() {
     let raw = include_str!("vectors/acvp-aes-xts-1.0.json");
     let vectors: Vec<RawVector> = serde_json::from_str(raw).expect("fixture must parse");
-    assert_eq!(vectors.len(), 260, "expected all 260 byte-aligned ACVP-AES-XTS-1.0 sample vectors");
+    assert_eq!(
+        vectors.len(),
+        260,
+        "expected all 260 byte-aligned ACVP-AES-XTS-1.0 sample vectors"
+    );
 
     for v in &vectors {
         run_case(v);

@@ -80,9 +80,9 @@ pub fn process_ranges(
             }
             Ok(())
         }
-        Concurrency::GlobalPool => ranges
-            .par_iter()
-            .try_for_each(|range| process_one_range(input, output, engine, *range, data_len, encrypt, progress)),
+        Concurrency::GlobalPool => ranges.par_iter().try_for_each(|range| {
+            process_one_range(input, output, engine, *range, data_len, encrypt, progress)
+        }),
         Concurrency::Fixed(num_threads) => {
             let pool = rayon::ThreadPoolBuilder::new()
                 .num_threads(num_threads.max(1))
@@ -139,8 +139,20 @@ mod tests {
     fn chunk_ranges_exact_multiple() {
         let ranges = chunk_ranges(4096 * 3, 8); // 3 chunks of 8 sectors (4096B) each
         assert_eq!(ranges.len(), 3);
-        assert_eq!(ranges[0], SectorRange { first_sector: 0, sector_count: 8 });
-        assert_eq!(ranges[2], SectorRange { first_sector: 16, sector_count: 8 });
+        assert_eq!(
+            ranges[0],
+            SectorRange {
+                first_sector: 0,
+                sector_count: 8
+            }
+        );
+        assert_eq!(
+            ranges[2],
+            SectorRange {
+                first_sector: 16,
+                sector_count: 8
+            }
+        );
     }
 
     #[test]
@@ -168,7 +180,9 @@ mod tests {
         let enc_path = dir.join("enc.bin");
         let dec_path = dir.join("dec.bin");
 
-        let plaintext: Vec<u8> = (0..(SECTOR_SIZE * 10 + 37) as u32).map(|i| (i % 256) as u8).collect();
+        let plaintext: Vec<u8> = (0..(SECTOR_SIZE * 10 + 37) as u32)
+            .map(|i| (i % 256) as u8)
+            .collect();
         std::fs::write(&in_path, &plaintext).unwrap();
 
         let spec = CipherSpec::parse("aes-xts-plain64").unwrap();
@@ -182,8 +196,19 @@ mod tests {
         let sector_rounded_len = data_len.div_ceil(SECTOR_SIZE as u64) * SECTOR_SIZE as u64;
 
         let input = SectorFile::open_read(&in_path).unwrap();
-        let output = nocap_crypt_blockio::create_sparse_output(&enc_path, sector_rounded_len).unwrap();
-        process_ranges(&input, &output, &engine, &ranges, data_len, concurrency, true, None).unwrap();
+        let output =
+            nocap_crypt_blockio::create_sparse_output(&enc_path, sector_rounded_len).unwrap();
+        process_ranges(
+            &input,
+            &output,
+            &engine,
+            &ranges,
+            data_len,
+            concurrency,
+            true,
+            None,
+        )
+        .unwrap();
         drop(output);
 
         let ciphertext = std::fs::read(&enc_path).unwrap();
@@ -191,12 +216,23 @@ mod tests {
         assert_ne!(&ciphertext[..plaintext.len()], plaintext.as_slice());
 
         let enc_input = SectorFile::open_read(&enc_path).unwrap();
-        let dec_output = nocap_crypt_blockio::create_sparse_output(&dec_path, sector_rounded_len).unwrap();
+        let dec_output =
+            nocap_crypt_blockio::create_sparse_output(&dec_path, sector_rounded_len).unwrap();
         // Decrypt reads the full sector-rounded ciphertext (every byte
         // written above is real, encrypted content — including the
         // padded tail sector), so data_len here is the ciphertext's
         // own length, not the original plaintext length.
-        process_ranges(&enc_input, &dec_output, &engine, &ranges, sector_rounded_len, concurrency, false, None).unwrap();
+        process_ranges(
+            &enc_input,
+            &dec_output,
+            &engine,
+            &ranges,
+            sector_rounded_len,
+            concurrency,
+            false,
+            None,
+        )
+        .unwrap();
         drop(dec_output);
 
         let decrypted = std::fs::read(&dec_path).unwrap();
@@ -252,8 +288,11 @@ mod tests {
         ];
 
         for data_len_bytes in [SECTOR_SIZE * 37, SECTOR_SIZE * 37 + 129] {
-            let plaintext: Vec<u8> = (0..data_len_bytes as u32).map(|i| (i % 256) as u8).collect();
-            let sector_rounded_len = (data_len_bytes as u64).div_ceil(SECTOR_SIZE as u64) * SECTOR_SIZE as u64;
+            let plaintext: Vec<u8> = (0..data_len_bytes as u32)
+                .map(|i| (i % 256) as u8)
+                .collect();
+            let sector_rounded_len =
+                (data_len_bytes as u64).div_ceil(SECTOR_SIZE as u64) * SECTOR_SIZE as u64;
 
             let mut reference: Option<Vec<u8>> = None;
             for &mode in &modes {
@@ -269,8 +308,13 @@ mod tests {
                 let data_len = plaintext.len() as u64;
                 let ranges = chunk_ranges(data_len, 8);
                 let input = SectorFile::open_read(&in_path).unwrap();
-                let output = nocap_crypt_blockio::create_sparse_output(&enc_path, sector_rounded_len).unwrap();
-                process_ranges(&input, &output, &engine, &ranges, data_len, mode, true, None).unwrap();
+                let output =
+                    nocap_crypt_blockio::create_sparse_output(&enc_path, sector_rounded_len)
+                        .unwrap();
+                process_ranges(
+                    &input, &output, &engine, &ranges, data_len, mode, true, None,
+                )
+                .unwrap();
                 drop(output);
 
                 let ciphertext = std::fs::read(&enc_path).unwrap();
@@ -294,7 +338,10 @@ mod tests {
     fn progress_counter_reaches_full_sector_rounded_length() {
         use nocap_crypt_core::CipherSpec;
 
-        let dir = std::env::temp_dir().join(format!("nocap-crypt-worker-progress-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "nocap-crypt-worker-progress-test-{}",
+            std::process::id()
+        ));
         std::fs::create_dir_all(&dir).unwrap();
         let in_path = dir.join("plain.bin");
         let enc_path = dir.join("enc.bin");
@@ -311,10 +358,21 @@ mod tests {
         let ranges = chunk_ranges(data_len, 8);
 
         let input = SectorFile::open_read(&in_path).unwrap();
-        let output = nocap_crypt_blockio::create_sparse_output(&enc_path, sector_rounded_len).unwrap();
+        let output =
+            nocap_crypt_blockio::create_sparse_output(&enc_path, sector_rounded_len).unwrap();
 
         let progress = AtomicU64::new(0);
-        process_ranges(&input, &output, &engine, &ranges, data_len, Concurrency::Fixed(4), true, Some(&progress)).unwrap();
+        process_ranges(
+            &input,
+            &output,
+            &engine,
+            &ranges,
+            data_len,
+            Concurrency::Fixed(4),
+            true,
+            Some(&progress),
+        )
+        .unwrap();
 
         // Progress counts real bytes written (whole sectors, including
         // any zero-padded tail), so it lands on the sector-rounded

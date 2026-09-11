@@ -25,7 +25,9 @@ pub fn run(args: &KeygenArgs, reporter: &dyn Reporter) -> ExitCode {
     let spec = match resolve_cipher_spec(args.cipher, args.key_size) {
         Ok(s) => s,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::UnsupportedCipher;
         }
     };
@@ -33,7 +35,9 @@ pub fn run(args: &KeygenArgs, reporter: &dyn Reporter) -> ExitCode {
     let key = nocap_crypt_keymgmt::generate_key(&spec);
 
     if let Err(e) = nocap_crypt_keymgmt::write_key_file(&args.output, &key, args.force) {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         return ExitCode::Io;
     }
 
@@ -43,7 +47,10 @@ pub fn run(args: &KeygenArgs, reporter: &dyn Reporter) -> ExitCode {
     });
     if reporter.narrates() {
         reporter.report(Event::Narration {
-            text: nocap_crypt_ui::explain_key_generation(key.len(), spec.mode == CipherMode::XtsPlain64),
+            text: nocap_crypt_ui::explain_key_generation(
+                key.len(),
+                spec.mode == CipherMode::XtsPlain64,
+            ),
         });
     }
     reporter.report(Event::Message {

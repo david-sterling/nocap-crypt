@@ -27,15 +27,25 @@ pub struct BenchArgs {
     pub seed: u64,
 }
 
-pub fn run_bench(args: &BenchArgs, reporter: &dyn Reporter, json: bool, show_progress: bool, no_color: bool) -> ExitCode {
+pub fn run_bench(
+    args: &BenchArgs,
+    reporter: &dyn Reporter,
+    json: bool,
+    show_progress: bool,
+    no_color: bool,
+) -> ExitCode {
     if let Some(banner) = reporter.boot_banner() {
-        reporter.report(Event::Banner { text: banner.to_string() });
+        reporter.report(Event::Banner {
+            text: banner.to_string(),
+        });
     }
 
     let spec = match resolve_cipher_spec(args.cipher, args.key_size) {
         Ok(s) => s,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::UnsupportedCipher;
         }
     };
@@ -59,7 +69,10 @@ pub fn run_bench(args: &BenchArgs, reporter: &dyn Reporter, json: bool, show_pro
         .collect();
     if worker_counts.is_empty() {
         reporter.report(Event::Error {
-            text: format!("--workers {:?} contains no valid worker counts", args.workers),
+            text: format!(
+                "--workers {:?} contains no valid worker counts",
+                args.workers
+            ),
         });
         return ExitCode::InvalidArgs;
     }
@@ -106,7 +119,9 @@ pub fn run_bench(args: &BenchArgs, reporter: &dyn Reporter, json: bool, show_pro
                 results.push(result);
             }
             Err(e) => {
-                reporter.report(Event::Error { text: e.to_string() });
+                reporter.report(Event::Error {
+                    text: e.to_string(),
+                });
                 return ExitCode::Io;
             }
         }

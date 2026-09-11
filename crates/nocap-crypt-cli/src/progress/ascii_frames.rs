@@ -18,7 +18,8 @@ const AGENCIES: [&str; 8] = ["CIA", "NSA", "FBI", "ATF", "WEF", "IRS", "MI6", "C
 const PARANOID_PHASE_TICKS: u64 = 3;
 const HANDS_UP_PHASE_TICKS: u64 = 4;
 const LIFT_CAP_PHASE_TICKS: u64 = 3;
-pub const TOTAL_MIN_ANIMATION_TICKS: u64 = PARANOID_PHASE_TICKS + HANDS_UP_PHASE_TICKS + LIFT_CAP_PHASE_TICKS;
+pub const TOTAL_MIN_ANIMATION_TICKS: u64 =
+    PARANOID_PHASE_TICKS + HANDS_UP_PHASE_TICKS + LIFT_CAP_PHASE_TICKS;
 
 /// Cosmetic cap on `frame_for`'s phase selection — held at 0 during
 /// the paranoid phase's minimum ticks, then pinned at 90 (hands-up) and
@@ -190,7 +191,11 @@ mod tests {
 
     #[test]
     fn agency_is_centered_in_all_three_poses() {
-        for frame in [paranoid_left("FBI"), paranoid_right("FBI"), suspicious("FBI")] {
+        for frame in [
+            paranoid_left("FBI"),
+            paranoid_right("FBI"),
+            suspicious("FBI"),
+        ] {
             assert!(strip_ansi(&frame).contains("[ FBI ]"));
         }
     }
@@ -304,11 +309,20 @@ mod tests {
         let tinfoil_stripped = strip_ansi(&tinfoil_hat());
         let final_lines: Vec<&str> = final_stripped.lines().filter(|l| !l.is_empty()).collect();
         let tinfoil_lines: Vec<&str> = tinfoil_stripped.lines().filter(|l| !l.is_empty()).collect();
-        assert_eq!(final_lines.len(), tinfoil_lines.len(), "endings have a different number of rows");
+        assert_eq!(
+            final_lines.len(),
+            tinfoil_lines.len(),
+            "endings have a different number of rows"
+        );
 
         // Rows 0-2 are the head-outline-vs-hat rows, allowed to differ
         // in shape; every row from the eyes down must match exactly.
-        for (i, (f, t)) in final_lines.iter().zip(tinfoil_lines.iter()).enumerate().skip(3) {
+        for (i, (f, t)) in final_lines
+            .iter()
+            .zip(tinfoil_lines.iter())
+            .enumerate()
+            .skip(3)
+        {
             assert_eq!(
                 f.chars().count(),
                 t.chars().count(),

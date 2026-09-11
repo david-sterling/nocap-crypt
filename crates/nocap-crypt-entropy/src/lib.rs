@@ -7,6 +7,8 @@ pub mod chisquare;
 pub mod shannon;
 pub mod streaming;
 
-pub use chisquare::{chi_square_critical_approx, chi_square_statistic, is_uniform, DEGREES_OF_FREEDOM};
+pub use chisquare::{
+    chi_square_critical_approx, chi_square_statistic, is_uniform, DEGREES_OF_FREEDOM,
+};
 pub use shannon::{shannon_entropy, shannon_entropy_ceiling};
 pub use streaming::{analyze_stream, StreamEntropyReport, WindowScore};

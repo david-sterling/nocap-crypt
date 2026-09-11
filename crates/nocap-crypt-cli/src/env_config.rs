@@ -57,7 +57,8 @@ fn encrypt_args_from_env() -> Result<EncryptArgs, String> {
         max_workers: optional_parsed("NOCAP_CRYPT_MAX_WORKERS")?,
         small_file_threshold: optional_parsed("NOCAP_CRYPT_SMALL_FILE_THRESHOLD")?
             .unwrap_or(DEFAULT_SMALL_FILE_THRESHOLD_BYTES),
-        pin_to_submission_thread: optional_bool("NOCAP_CRYPT_PIN_TO_SUBMISSION_THREAD")?.unwrap_or(false),
+        pin_to_submission_thread: optional_bool("NOCAP_CRYPT_PIN_TO_SUBMISSION_THREAD")?
+            .unwrap_or(false),
         dry_run_cryptsetup_compat: false,
     })
 }
@@ -73,7 +74,8 @@ fn decrypt_args_from_env() -> Result<DecryptArgs, String> {
         max_workers: optional_parsed("NOCAP_CRYPT_MAX_WORKERS")?,
         small_file_threshold: optional_parsed("NOCAP_CRYPT_SMALL_FILE_THRESHOLD")?
             .unwrap_or(DEFAULT_SMALL_FILE_THRESHOLD_BYTES),
-        pin_to_submission_thread: optional_bool("NOCAP_CRYPT_PIN_TO_SUBMISSION_THREAD")?.unwrap_or(false),
+        pin_to_submission_thread: optional_bool("NOCAP_CRYPT_PIN_TO_SUBMISSION_THREAD")?
+            .unwrap_or(false),
     })
 }
 
@@ -82,7 +84,9 @@ fn optional(name: &str) -> Option<String> {
 }
 
 fn require(name: &str) -> Result<String, String> {
-    optional(name).ok_or_else(|| format!("{name} is required (and must be non-empty) for standalone `--ci` invocation"))
+    optional(name).ok_or_else(|| {
+        format!("{name} is required (and must be non-empty) for standalone `--ci` invocation")
+    })
 }
 
 fn require_path(name: &str) -> Result<PathBuf, String> {
@@ -94,7 +98,10 @@ where
     T::Err: std::fmt::Display,
 {
     match optional(name) {
-        Some(s) => s.parse::<T>().map(Some).map_err(|e| format!("{name}={s:?} is not valid: {e}")),
+        Some(s) => s
+            .parse::<T>()
+            .map(Some)
+            .map_err(|e| format!("{name}={s:?} is not valid: {e}")),
         None => Ok(None),
     }
 }
@@ -104,7 +111,9 @@ fn optional_bool(name: &str) -> Result<Option<bool>, String> {
         Some(s) => match s.to_ascii_lowercase().as_str() {
             "1" | "true" | "yes" => Ok(Some(true)),
             "0" | "false" | "no" => Ok(Some(false)),
-            _ => Err(format!("{name}={s:?} is not a valid boolean (use 1/0, true/false, yes/no)")),
+            _ => Err(format!(
+                "{name}={s:?} is not a valid boolean (use 1/0, true/false, yes/no)"
+            )),
         },
         None => Ok(None),
     }
@@ -112,14 +121,16 @@ fn optional_bool(name: &str) -> Result<Option<bool>, String> {
 
 fn optional_key_format() -> Result<KeyFormatArg, String> {
     match optional("NOCAP_CRYPT_KEY_FORMAT") {
-        Some(s) => KeyFormatArg::from_str(&s, true).map_err(|e| format!("NOCAP_CRYPT_KEY_FORMAT={s:?} is not valid: {e}")),
+        Some(s) => KeyFormatArg::from_str(&s, true)
+            .map_err(|e| format!("NOCAP_CRYPT_KEY_FORMAT={s:?} is not valid: {e}")),
         None => Ok(KeyFormatArg::Auto),
     }
 }
 
 fn optional_cipher() -> Result<CipherArg, String> {
     match optional("NOCAP_CRYPT_CIPHER") {
-        Some(s) => CipherArg::from_str(&s, true).map_err(|e| format!("NOCAP_CRYPT_CIPHER={s:?} is not valid: {e}")),
+        Some(s) => CipherArg::from_str(&s, true)
+            .map_err(|e| format!("NOCAP_CRYPT_CIPHER={s:?} is not valid: {e}")),
         None => Ok(CipherArg::AesXtsPlain64),
     }
 }

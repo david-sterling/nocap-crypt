@@ -9,10 +9,7 @@ use sha2::{Digest, Sha256};
 /// Hex-encode `key`, grouped into 4-byte (8 hex char) blocks separated
 /// by spaces, for human-readable `--reveal` output.
 pub fn hex_grouped(key: &[u8]) -> String {
-    key.chunks(4)
-        .map(hex::encode)
-        .collect::<Vec<_>>()
-        .join(" ")
+    key.chunks(4).map(hex::encode).collect::<Vec<_>>().join(" ")
 }
 
 /// Non-reversible fingerprint: first 8 hex chars (4 bytes) of

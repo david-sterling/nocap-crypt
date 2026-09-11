@@ -9,7 +9,9 @@ pub mod diskinfo;
 pub mod dispatch;
 pub mod heuristic;
 
-pub use concurrency::{resolve as resolve_concurrency, Concurrency, DEFAULT_SMALL_FILE_THRESHOLD_BYTES};
+pub use concurrency::{
+    resolve as resolve_concurrency, Concurrency, DEFAULT_SMALL_FILE_THRESHOLD_BYTES,
+};
 pub use diskinfo::{disk_type_for_path, DiskType};
 pub use dispatch::{chunk_ranges, process_ranges, SectorRange};
 pub use heuristic::{compute as compute_system_info, effective_core_count, DispatchInfo};

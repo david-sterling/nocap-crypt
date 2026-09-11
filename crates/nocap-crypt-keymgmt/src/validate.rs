@@ -48,7 +48,10 @@ pub struct KeyValidationReport {
 /// pattern. Returns the first failure found, in the order a
 /// cryptanalyst would want to know about them (structural before
 /// statistical).
-pub fn validate_key(spec: &CipherSpec, key: &[u8]) -> Result<KeyValidationReport, KeyValidationError> {
+pub fn validate_key(
+    spec: &CipherSpec,
+    key: &[u8],
+) -> Result<KeyValidationReport, KeyValidationError> {
     let expected = spec.required_key_bytes();
     if key.len() != expected {
         return Err(KeyValidationError::LengthMismatch {
@@ -87,7 +90,8 @@ pub fn validate_key(spec: &CipherSpec, key: &[u8]) -> Result<KeyValidationReport
 /// naively repeating a short pattern to pad length.
 fn detect_repeating_pattern(key: &[u8]) -> Option<usize> {
     let n = key.len();
-    (1..n).find(|&period| n.is_multiple_of(period) && key.chunks(period).all(|c| c == &key[..period]))
+    (1..n)
+        .find(|&period| n.is_multiple_of(period) && key.chunks(period).all(|c| c == &key[..period]))
 }
 
 #[cfg(test)]

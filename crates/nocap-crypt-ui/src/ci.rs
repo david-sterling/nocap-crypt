@@ -62,7 +62,9 @@ fn level_for(event: &Event) -> &'static str {
 fn timestamp_now() -> String {
     use time::format_description::well_known::Rfc3339;
     use time::OffsetDateTime;
-    OffsetDateTime::now_utc().format(&Rfc3339).unwrap_or_default()
+    OffsetDateTime::now_utc()
+        .format(&Rfc3339)
+        .unwrap_or_default()
 }
 
 /// Programmatically-sized colored block — every line's width is
@@ -70,7 +72,13 @@ fn timestamp_now() -> String {
 /// out of alignment the way freehand ASCII art can (see the frame
 /// widths in `nocap-crypt-cli::progress`, which are hand-drawn and
 /// verified separately for exactly that reason).
-fn render_outcome_banner(success: bool, error_code: &str, elapsed_ms: u64, label: &str, no_color: bool) -> String {
+fn render_outcome_banner(
+    success: bool,
+    error_code: &str,
+    elapsed_ms: u64,
+    label: &str,
+    no_color: bool,
+) -> String {
     let elapsed_s = elapsed_ms as f64 / 1000.0;
     let (mark, word, bg) = if success {
         ("\u{2713}", "SUCCESS", "\x1b[42m\x1b[97m")
@@ -98,7 +106,10 @@ mod tests {
 
     #[test]
     fn ci_has_no_boot_banner_and_no_jokes() {
-        let ci = Ci { json: false, no_color: false };
+        let ci = Ci {
+            json: false,
+            no_color: false,
+        };
         assert_eq!(ci.boot_banner(), None);
         assert_eq!(ci.corporate_joke(), None);
     }
@@ -106,7 +117,8 @@ mod tests {
     #[test]
     fn outcome_banner_lines_are_all_equal_width() {
         for success in [true, false] {
-            let banner = render_outcome_banner(success, "NC-003", 12345, "key validation failed", false);
+            let banner =
+                render_outcome_banner(success, "NC-003", 12345, "key validation failed", false);
             let widths: Vec<usize> = banner
                 .lines()
                 .map(|line| {
@@ -121,7 +133,11 @@ mod tests {
                         .count()
                 })
                 .collect();
-            assert_eq!(widths.iter().min(), widths.iter().max(), "banner lines have mismatched widths: {widths:?}");
+            assert_eq!(
+                widths.iter().min(),
+                widths.iter().max(),
+                "banner lines have mismatched widths: {widths:?}"
+            );
         }
     }
 

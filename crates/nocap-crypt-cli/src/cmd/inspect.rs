@@ -38,7 +38,9 @@ pub fn run(args: &InspectArgs, reporter: &dyn Reporter, json: bool) -> ExitCode 
     let file_size = match file.metadata() {
         Ok(m) => m.len(),
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::Io;
         }
     };
@@ -46,7 +48,9 @@ pub fn run(args: &InspectArgs, reporter: &dyn Reporter, json: bool) -> ExitCode 
     let entropy = match nocap_crypt_entropy::analyze_stream(file, args.window_size) {
         Ok(r) => r,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::Io;
         }
     };
@@ -80,7 +84,8 @@ pub fn run(args: &InspectArgs, reporter: &dyn Reporter, json: bool) -> ExitCode 
             args.input.display(),
             file_size,
             file_size % args.sector_size == 0,
-            luks.map(|v| format!("{v:?}")).unwrap_or_else(|| "none (headerless/plain)".to_string()),
+            luks.map(|v| format!("{v:?}"))
+                .unwrap_or_else(|| "none (headerless/plain)".to_string()),
         ),
     });
     reporter.report(Event::EntropyScore {
@@ -89,7 +94,9 @@ pub fn run(args: &InspectArgs, reporter: &dyn Reporter, json: bool) -> ExitCode 
     });
     if reporter.narrates() {
         reporter.report(Event::Narration {
-            text: nocap_crypt_ui::explain_entropy_result_ciphertext(entropy.overall_shannon_bits_per_byte),
+            text: nocap_crypt_ui::explain_entropy_result_ciphertext(
+                entropy.overall_shannon_bits_per_byte,
+            ),
         });
     }
     reporter.report(Event::Message {

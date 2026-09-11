@@ -36,7 +36,10 @@ pub fn run(reporter: &dyn Reporter, json: bool) -> ExitCode {
     reporter.report(Event::Message {
         text: format!(
             "build: nocap-crypt {} ({}-{}) — git {}",
-            info.build.package_version, info.build.target_arch, info.build.target_os, info.build.git_sha
+            info.build.package_version,
+            info.build.target_arch,
+            info.build.target_os,
+            info.build.git_sha
         ),
     });
 

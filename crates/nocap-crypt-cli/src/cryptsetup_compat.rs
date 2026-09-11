@@ -123,7 +123,11 @@ mod platform {
     }
 
     pub fn run(spec: CipherSpec, key: &[u8]) -> Outcome {
-        if Command::new("cryptsetup").arg("--version").output().is_err() {
+        if Command::new("cryptsetup")
+            .arg("--version")
+            .output()
+            .is_err()
+        {
             return Outcome::CryptsetupNotFound;
         }
 
@@ -185,10 +189,15 @@ mod platform {
                 String::from_utf8_lossy(&losetup_out.stderr).trim()
             ));
         }
-        let loop_dev = String::from_utf8_lossy(&losetup_out.stdout).trim().to_string();
+        let loop_dev = String::from_utf8_lossy(&losetup_out.stdout)
+            .trim()
+            .to_string();
         guard.loop_dev = Some(loop_dev.clone());
 
-        let key_file_str = key_path.to_str().ok_or("temp key path is not valid UTF-8")?.to_string();
+        let key_file_str = key_path
+            .to_str()
+            .ok_or("temp key path is not valid UTF-8")?
+            .to_string();
         let open_args: Vec<String> = vec![
             "open".into(),
             "--type".into(),
@@ -229,7 +238,8 @@ mod platform {
         // Real dm-crypt output lands at the start of the backing file —
         // `--skip` only changed the IV, not the write location (see the
         // comment above `total_len`).
-        let backing_bytes = std::fs::read(&backing_path).map_err(|e| format!("reading backing file: {e}"))?;
+        let backing_bytes =
+            std::fs::read(&backing_path).map_err(|e| format!("reading backing file: {e}"))?;
         if backing_bytes.len() < fixture_len {
             return Err("backing file shorter than expected after write".to_string());
         }

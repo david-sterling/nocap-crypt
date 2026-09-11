@@ -65,7 +65,9 @@ pub fn run(args: &ValidateArgs, reporter: &dyn Reporter) -> ExitCode {
     let spec = match resolve_cipher_spec(args.cipher, args.key_size) {
         Ok(s) => s,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::UnsupportedCipher;
         }
     };
@@ -83,7 +85,11 @@ pub fn run(args: &ValidateArgs, reporter: &dyn Reporter) -> ExitCode {
             "file size {file_size} bytes is NOT a whole multiple of the {SECTOR_SIZE}-byte \
              sector size ({} leftover byte{}) — this can't be a valid plain dm-crypt volume",
             file_size % SECTOR_SIZE,
-            if file_size % SECTOR_SIZE == 1 { "" } else { "s" }
+            if file_size % SECTOR_SIZE == 1 {
+                ""
+            } else {
+                "s"
+            }
         )
     };
     let cipher_note = if structural.cipher_spec_round_trips {
@@ -111,14 +117,18 @@ pub fn run(args: &ValidateArgs, reporter: &dyn Reporter) -> ExitCode {
     let key = match load_key_file(key_path, args.key_format) {
         Ok(k) => k,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::Io;
         }
     };
     let engine = match SectorEngine::new(spec, &key) {
         Ok(e) => e,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::KeyValidation;
         }
     };
@@ -134,13 +144,17 @@ pub fn run(args: &ValidateArgs, reporter: &dyn Reporter) -> ExitCode {
     let sf = match SectorFile::open_read(&args.input) {
         Ok(f) => f,
         Err(e) => {
-            reporter.report(Event::Error { text: e.to_string() });
+            reporter.report(Event::Error {
+                text: e.to_string(),
+            });
             return ExitCode::Io;
         }
     };
     let mut head = vec![0u8; (head_sectors * SECTOR_SIZE) as usize];
     if let Err(e) = sf.read_at_exact(0, &mut head) {
-        reporter.report(Event::Error { text: e.to_string() });
+        reporter.report(Event::Error {
+            text: e.to_string(),
+        });
         return ExitCode::Io;
     }
     engine.decrypt_range(0, &mut head);
@@ -154,7 +168,8 @@ pub fn run(args: &ValidateArgs, reporter: &dyn Reporter) -> ExitCode {
         }
         None => {
             reporter.report(Event::Error {
-                text: "round-trip check: no known filesystem magic detected at expected offsets".to_string(),
+                text: "round-trip check: no known filesystem magic detected at expected offsets"
+                    .to_string(),
             });
             ExitCode::LuksCompat
         }
@@ -166,7 +181,11 @@ mod tests {
     use super::*;
 
     fn temp_path(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("nocap-crypt-cli-validate-test-{}-{}", std::process::id(), name))
+        std::env::temp_dir().join(format!(
+            "nocap-crypt-cli-validate-test-{}-{}",
+            std::process::id(),
+            name
+        ))
     }
 
     struct RecordingReporter {
@@ -209,19 +228,33 @@ mod tests {
         let text = events
             .iter()
             .find_map(|e| match e {
-                Event::Message { text } if text.starts_with("structural check:") => Some(text.clone()),
+                Event::Message { text } if text.starts_with("structural check:") => {
+                    Some(text.clone())
+                }
                 _ => None,
             })
             .expect("expected a structural check message");
 
-        assert!(text.contains("1024 bytes"), "should name the real file size: {text:?}");
-        assert!(text.contains("512-byte sector"), "should name the real sector size: {text:?}");
-        assert!(text.contains("whole multiple"), "should say what the check actually verified: {text:?}");
+        assert!(
+            text.contains("1024 bytes"),
+            "should name the real file size: {text:?}"
+        );
+        assert!(
+            text.contains("512-byte sector"),
+            "should name the real sector size: {text:?}"
+        );
+        assert!(
+            text.contains("whole multiple"),
+            "should say what the check actually verified: {text:?}"
+        );
         assert!(
             text.contains("headerless plain dm-crypt has no header"),
             "should explain why this check exists, not just report the boolean: {text:?}"
         );
-        assert!(text.contains("aes-xts-plain64"), "should name the actual cipher spec checked: {text:?}");
+        assert!(
+            text.contains("aes-xts-plain64"),
+            "should name the actual cipher spec checked: {text:?}"
+        );
 
         std::fs::remove_file(&path).ok();
     }
@@ -243,15 +276,29 @@ mod tests {
         let text = events
             .iter()
             .find_map(|e| match e {
-                Event::Message { text } if text.starts_with("structural check:") => Some(text.clone()),
+                Event::Message { text } if text.starts_with("structural check:") => {
+                    Some(text.clone())
+                }
                 _ => None,
             })
             .expect("expected a structural check message");
 
-        assert!(text.contains("513 bytes"), "should name the real file size: {text:?}");
-        assert!(text.contains("NOT a whole multiple"), "should say the check failed, not just print false: {text:?}");
-        assert!(text.contains("1 leftover byte"), "should name the actual remainder: {text:?}");
-        assert!(!text.contains("1 leftover bytes"), "singular remainder should not pluralize: {text:?}");
+        assert!(
+            text.contains("513 bytes"),
+            "should name the real file size: {text:?}"
+        );
+        assert!(
+            text.contains("NOT a whole multiple"),
+            "should say the check failed, not just print false: {text:?}"
+        );
+        assert!(
+            text.contains("1 leftover byte"),
+            "should name the actual remainder: {text:?}"
+        );
+        assert!(
+            !text.contains("1 leftover bytes"),
+            "singular remainder should not pluralize: {text:?}"
+        );
 
         std::fs::remove_file(&path).ok();
     }
