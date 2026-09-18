@@ -22,23 +22,23 @@ edition = "2021"
 license-file = "LICENSE"
 
 [workspace.dependencies]
-aes = "0.8"
-xts-mode = "0.5"
-cbc = "0.1"
-sha2 = "0.10"
-cipher = "0.4"
+aes = "0.9"
+xts-mode = "0.6"
+cbc = "0.2"
+sha2 = "0.11"
+cipher = "0.5"
 rayon = "1.10"
-indicatif = "0.17"
-crossterm = "0.28"
-console = "0.15"
+indicatif = "0.18"
+crossterm = "0.29"
+console = "0.16"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-thiserror = "1"
-rand = "0.8"
+thiserror = "2"
+rand = "0.10"
 hex = "0.4"
-base64 = "0.22"
+base64 = "0.23"
 
 nocap-crypt-core = { path = "crates/nocap-crypt-core" }
 nocap-crypt-keymgmt = { path = "crates/nocap-crypt-keymgmt" }
