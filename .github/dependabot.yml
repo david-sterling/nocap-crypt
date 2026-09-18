@@ -5,9 +5,19 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      cargo-dependencies:
+      # Only bundle minor/patch bumps — a crypto tool can't afford a
+      # single PR silently carrying a major/breaking bump to aes,
+      # cipher, cbc, sha2, or xts-mode alongside a dozen unrelated
+      # updates (see PR #1: this grouped every severity together and
+      # the merged diff was Cargo.toml/Cargo.lock only, no source
+      # fixes, so it didn't even compile). Majors are left out of the
+      # group entirely so each lands as its own reviewable PR.
+      cargo-minor-patch:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "dependencies"
       - "rust"
@@ -19,9 +29,12 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      github-actions:
+      github-actions-minor-patch:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "dependencies"
       - "github-actions"
