@@ -1,3 +1,5 @@
+[![blazingly fast](https://www.blazingly.fast/api/badge.svg?repo=david-sterling%2Fnocap-crypt)](https://www.blazingly.fast)
+
 # 🧢 nocap-crypt: Make Userspace Great Again (MUGA)
 
 > **Blazingly fast, unprivileged `cryptsetup` replacement for AES-XTS & AES-CBC volume encryption.**
