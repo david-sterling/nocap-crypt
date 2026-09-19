@@ -11,16 +11,20 @@ use std::io::Write;
 use std::path::Path;
 
 use nocap_crypt_core::CipherSpec;
-use rand::rngs::OsRng;
-use rand::RngCore;
+use rand::rngs::SysRng;
+use rand::TryRng;
 use thiserror::Error;
 
 /// Generate a cryptographically random key of the length `spec`
 /// requires, sourced from the OS CSPRNG (`getrandom`/`CryptGenRandom`
-/// via `rand::rngs::OsRng`) — never a seedable PRNG.
+/// via `rand::rngs::SysRng`) — never a seedable PRNG. `SysRng` is
+/// fallible (OS entropy sourcing can in principle fail), so a failure
+/// here panics rather than silently handing back a zeroed/weak key.
 pub fn generate_key(spec: &CipherSpec) -> Vec<u8> {
     let mut key = vec![0u8; spec.required_key_bytes()];
-    OsRng.fill_bytes(&mut key);
+    SysRng
+        .try_fill_bytes(&mut key)
+        .expect("OS CSPRNG failed to fill key material");
     key
 }
 

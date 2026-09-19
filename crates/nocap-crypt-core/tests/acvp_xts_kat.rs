@@ -66,32 +66,38 @@ fn run_case(v: &RawVector) {
 
     match v.key_len {
         128 => {
-            let xts = Xts128::new(Aes128::new(k1.into()), Aes128::new(k2.into()));
+            let xts = Xts128::new(
+                Aes128::new(k1.try_into().expect("AES-128 half-key is 16 bytes")),
+                Aes128::new(k2.try_into().expect("AES-128 half-key is 16 bytes")),
+            );
             let mut buf = if v.direction == "encrypt" {
                 pt.clone()
             } else {
                 ct.clone()
             };
             if v.direction == "encrypt" {
-                xts.encrypt_sector(&mut buf, tweak);
+                xts.encrypt_sector(&mut buf, tweak.into());
                 assert_eq!(buf, ct, "tc {} (AES-128, encrypt) mismatch", v.tc_id);
             } else {
-                xts.decrypt_sector(&mut buf, tweak);
+                xts.decrypt_sector(&mut buf, tweak.into());
                 assert_eq!(buf, pt, "tc {} (AES-128, decrypt) mismatch", v.tc_id);
             }
         }
         256 => {
-            let xts = Xts128::new(Aes256::new(k1.into()), Aes256::new(k2.into()));
+            let xts = Xts128::new(
+                Aes256::new(k1.try_into().expect("AES-256 half-key is 32 bytes")),
+                Aes256::new(k2.try_into().expect("AES-256 half-key is 32 bytes")),
+            );
             let mut buf = if v.direction == "encrypt" {
                 pt.clone()
             } else {
                 ct.clone()
             };
             if v.direction == "encrypt" {
-                xts.encrypt_sector(&mut buf, tweak);
+                xts.encrypt_sector(&mut buf, tweak.into());
                 assert_eq!(buf, ct, "tc {} (AES-256, encrypt) mismatch", v.tc_id);
             } else {
-                xts.decrypt_sector(&mut buf, tweak);
+                xts.decrypt_sector(&mut buf, tweak.into());
                 assert_eq!(buf, pt, "tc {} (AES-256, decrypt) mismatch", v.tc_id);
             }
         }

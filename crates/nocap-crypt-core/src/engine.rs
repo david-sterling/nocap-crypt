@@ -7,7 +7,7 @@
 //! sector-range parallelism in `nocap-crypt-worker` safe.
 
 use aes::{Aes128, Aes192, Aes256};
-use cipher::{BlockDecrypt, BlockEncrypt, KeyInit};
+use cipher::{BlockCipherDecrypt, BlockCipherEncrypt, KeyInit};
 use sha2::{Digest, Sha256};
 use xts_mode::Xts128;
 
@@ -47,8 +47,8 @@ pub enum SectorEngine {
     CbcEssiv(CbcEssivVariant),
 }
 
-fn tweak_fn(sector_index: u128) -> [u8; 16] {
-    plain64_iv(sector_index as u64)
+fn tweak_fn(sector_index: u128) -> cipher::Array<u8, cipher::consts::U16> {
+    plain64_iv(sector_index as u64).into()
 }
 
 impl SectorEngine {
@@ -63,20 +63,26 @@ impl SectorEngine {
 
         match spec.mode {
             CipherMode::XtsPlain64 => {
+                // `key.len() == expected` was just checked above, so
+                // each half's length is guaranteed correct here —
+                // `Array`'s `TryFrom<&[u8]>` (cipher 0.5's hybrid-array
+                // backing dropped the old generic-array-based blanket
+                // slice `Into`) can only fail on a length mismatch,
+                // which is already ruled out.
                 let half = key.len() / 2;
                 let (k1, k2) = key.split_at(half);
                 let variant = match spec.aes_bits {
                     AesKeyBits::Bits128 => XtsVariant::Aes128(Xts128::new(
-                        Aes128::new(k1.into()),
-                        Aes128::new(k2.into()),
+                        Aes128::new(k1.try_into().expect("key half length validated above")),
+                        Aes128::new(k2.try_into().expect("key half length validated above")),
                     )),
                     AesKeyBits::Bits192 => XtsVariant::Aes192(Xts128::new(
-                        Aes192::new(k1.into()),
-                        Aes192::new(k2.into()),
+                        Aes192::new(k1.try_into().expect("key half length validated above")),
+                        Aes192::new(k2.try_into().expect("key half length validated above")),
                     )),
                     AesKeyBits::Bits256 => XtsVariant::Aes256(Xts128::new(
-                        Aes256::new(k1.into()),
-                        Aes256::new(k2.into()),
+                        Aes256::new(k1.try_into().expect("key half length validated above")),
+                        Aes256::new(k2.try_into().expect("key half length validated above")),
                     )),
                 };
                 Ok(SectorEngine::Xts(variant))
@@ -90,8 +96,13 @@ impl SectorEngine {
                 let digest = Sha256::digest(key);
                 let variant = match spec.aes_bits {
                     AesKeyBits::Bits256 => CbcEssivVariant::Aes256 {
-                        main: Aes256::new(key.into()),
-                        essiv: Aes256::new((&digest[..]).into()),
+                        main: Aes256::new(key.try_into().expect("key length validated above")),
+                        essiv: Aes256::new(
+                            digest
+                                .as_slice()
+                                .try_into()
+                                .expect("SHA-256 digest is always 32 bytes"),
+                        ),
                     },
                     AesKeyBits::Bits192 | AesKeyBits::Bits128 => unreachable!(
                         "CipherSpec::with_aes_bits rejects non-256-bit keys for CbcEssivSha256"
@@ -180,24 +191,32 @@ fn cbc_essiv_crypt_range(
     }
 }
 
-fn cbc_encrypt_blocks<C: BlockEncrypt>(cipher: &C, iv: &[u8; 16], buf: &mut [u8]) {
+fn cbc_encrypt_blocks<C: BlockCipherEncrypt<BlockSize = cipher::consts::U16>>(
+    cipher: &C,
+    iv: &[u8; 16],
+    buf: &mut [u8],
+) {
     let mut prev = *iv;
     let (blocks, _) = buf.as_chunks_mut::<16>();
     for block in blocks {
         for (b, p) in block.iter_mut().zip(prev.iter()) {
             *b ^= p;
         }
-        cipher.encrypt_block((&mut block[..]).into());
+        cipher.encrypt_block(block.into());
         prev.copy_from_slice(&block[..]);
     }
 }
 
-fn cbc_decrypt_blocks<C: BlockDecrypt>(cipher: &C, iv: &[u8; 16], buf: &mut [u8]) {
+fn cbc_decrypt_blocks<C: BlockCipherDecrypt<BlockSize = cipher::consts::U16>>(
+    cipher: &C,
+    iv: &[u8; 16],
+    buf: &mut [u8],
+) {
     let mut prev = *iv;
     let (blocks, _) = buf.as_chunks_mut::<16>();
     for block in blocks {
         let ciphertext: [u8; 16] = *block;
-        cipher.decrypt_block((&mut block[..]).into());
+        cipher.decrypt_block(block.into());
         for (b, p) in block.iter_mut().zip(prev.iter()) {
             *b ^= p;
         }

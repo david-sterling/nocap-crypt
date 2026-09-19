@@ -9,8 +9,8 @@
 //! seedable code path, so a benchmark data generator can never be
 //! reached for actual key generation by accident.
 
-use rand::rngs::OsRng;
-use rand::RngCore;
+use rand::rngs::SysRng;
+use rand::TryRng;
 
 /// Deterministic xorshift64* generator — fast, reproducible, and
 /// explicitly *not* cryptographically secure. Only ever used to fill
@@ -48,7 +48,9 @@ impl BenchDataGenerator {
 /// run — the two have different, both valid, purposes.
 pub fn true_random(len: usize) -> Vec<u8> {
     let mut buf = vec![0u8; len];
-    OsRng.fill_bytes(&mut buf);
+    SysRng
+        .try_fill_bytes(&mut buf)
+        .expect("OS CSPRNG failed to fill benchmark data");
     buf
 }
 
