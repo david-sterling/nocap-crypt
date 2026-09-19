@@ -29,7 +29,7 @@ sha2 = "0.10"
 cipher = "0.4"
 rayon = "1.10"
 indicatif = "0.17"
-crossterm = "0.28"
+crossterm = "0.29"
 console = "0.15"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
