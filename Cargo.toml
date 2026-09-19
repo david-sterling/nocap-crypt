@@ -30,7 +30,7 @@ cipher = "0.4"
 rayon = "1.10"
 indicatif = "0.17"
 crossterm = "0.28"
-console = "0.15"
+console = "0.16"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 serde = { version = "1", features = ["derive"] }
