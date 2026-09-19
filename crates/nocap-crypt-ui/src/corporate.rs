@@ -1,4 +1,4 @@
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 
 use crate::event::{Event, ProgressFlavor, Reporter};
 use crate::quotes::SATIRICAL_QUOTES;
@@ -31,7 +31,7 @@ impl Reporter for Corporate {
     }
 
     fn corporate_joke(&self) -> Option<String> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         SATIRICAL_QUOTES.choose(&mut rng).map(|s| s.to_string())
     }
 

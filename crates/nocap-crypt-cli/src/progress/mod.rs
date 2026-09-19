@@ -22,7 +22,7 @@ use std::time::Duration;
 
 use indicatif::{ProgressBar, ProgressStyle};
 use nocap_crypt_ui::ProgressFlavor;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 
 use ascii_frames::{
     cosmetic_percent_cap, final_reveal, frame_for, tinfoil_hat, HANDS_UP_TAGS,
@@ -77,7 +77,7 @@ impl LiveProgress {
             return None;
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let hands_up_tag = *HANDS_UP_TAGS
             .choose(&mut rng)
             .expect("HANDS_UP_TAGS is never empty");
